@@ -17,7 +17,7 @@ class Mentor(Base):
     lgbtq_status = Column(String)
     extracurricular_interests = Column(JSON, default=[])
     max_mentees = Column(Integer, nullable=False)
-    preferred_mentees = Column(JSON, default=[]) # List of mentee IDs
+    preferred_mentees = Column(JSON, default=[]) # List of mentee names
     data_cycle = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     matches = relationship("Match", foreign_keys="Match.mentor_id", back_populates="mentor")

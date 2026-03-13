@@ -1,6 +1,8 @@
 import gspread
 from google.oauth2.service_account import Credentials
 
+#  todo: replace key with an environment variable
+
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
@@ -23,5 +25,5 @@ def get_mentor_rows():
 
 def get_mentee_rows():
     client = get_client()
-    sheet = client.open("1JJESL_vy9wIZxC4NyHOWNvzBK6-fNIvtBCkN3wX224M").worksheet("Mentee Responses")
+    sheet = client.open_by_key("1JJESL_vy9wIZxC4NyHOWNvzBK6-fNIvtBCkN3wX224M").worksheet("Mentee Responses")
     return sheet.get_all_records()

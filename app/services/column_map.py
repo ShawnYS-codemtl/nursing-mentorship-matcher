@@ -1,5 +1,5 @@
 COLUMN_MAP = {
-    "name": "What is your full name? (First Name, Last Name *preferred name in brackets if applicable*",
+    "name": "What is your full name? (First Name, Last Name)",
     "email": "McGill Email (@mail.mcgill.ca)",
     "program": "Program",
     "academic_year": "What is your current year in the program? (first year of BNI is U2)",

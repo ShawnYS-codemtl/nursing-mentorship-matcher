@@ -1,6 +1,6 @@
 from app.models import Mentor, Mentee
 import uuid
-from column_map import COLUMN_MAP
+from .column_map import COLUMN_MAP
 
 
 # Year mapping
@@ -78,7 +78,7 @@ def process_mentor_form_submission(row: dict) -> Mentor:
     mentor.lgbtq_status = normalize_option(lgbtq_raw)
     
     # Max mentees (multiple choice to int)
-    max_mentees_raw = row.get(COLUMN_MAP["nb_mentees"], "1").strip()
+    max_mentees_raw = str(row.get(COLUMN_MAP["nb_mentees"], "1")).strip()
     if max_mentees_raw.lower() == "no preference":
         mentor.max_mentees = None
     else:

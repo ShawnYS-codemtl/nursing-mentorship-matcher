@@ -6,9 +6,9 @@ from datetime import datetime, timezone
 class Mentor(Base):
     __tablename__ = 'mentors'
     id = Column(Integer, primary_key=True)
-    form_id = Column(String, unique=True, nullable=False)
+    form_id = Column(String, unique=False, nullable=False)
     name = Column(String, nullable=False)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
     program = Column(String, nullable=False) # 'BSN', 'Accelerated BSN', 'RN-to-BSN'
     year_in_program = Column(Integer, nullable=False)
     specialties = Column(JSON, default=[])
@@ -18,6 +18,5 @@ class Mentor(Base):
     extracurricular_interests = Column(JSON, default=[])
     max_mentees = Column(Integer, nullable=False)
     preferred_mentees = Column(JSON, default=[]) # List of mentee names
-    data_cycle = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     matches = relationship("Match", foreign_keys="Match.mentor_id", back_populates="mentor")

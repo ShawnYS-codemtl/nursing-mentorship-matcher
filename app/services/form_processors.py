@@ -80,7 +80,7 @@ def process_mentor_form_submission(row: dict) -> Mentor:
     # Max mentees (multiple choice to int)
     max_mentees_raw = str(row.get(COLUMN_MAP["nb_mentees"], "1")).strip()
     if max_mentees_raw.lower() == "no preference":
-        mentor.max_mentees = None
+        mentor.max_mentees = 4  # using 4 as no preference
     else:
         mentor.max_mentees = int(max_mentees_raw)
     

@@ -16,6 +16,7 @@ class Mentee(Base):
     race_ethnicity = Column(JSON, default=[])
     lgbtq_status = Column(String)
     extracurricular_interests = Column(JSON, default=[])
-    preferred_mentor = Column(String) # Mentor name
+    preferred_mentor_name = Column(String, nullable=True) # Mentor name
+    preferred_mentor_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     match = relationship("Match", uselist=False, foreign_keys="Match.mentee_id", back_populates="mentee")

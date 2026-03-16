@@ -86,8 +86,8 @@ def process_mentor_form_submission(row: dict) -> Mentor:
     
     # Preferred mentees (long answer - parse names)
     preferred_raw = row.get(COLUMN_MAP["specific_mentees"], '')
-    mentor.preferred_mentees = [
-        " ".join(name.strip().lower().split())
+    mentor.preferred_mentee_names = [
+        "_".join(name.strip().lower().split())
         for name in preferred_raw.split(',')
         if name.strip()
     ]
@@ -151,8 +151,8 @@ def process_mentee_form_submission(row: dict) -> Mentee:
     # Preferred mentor (long answer - parse names)
     preferred = row.get(COLUMN_MAP["specific_mentor"], '').strip()
 
-    mentee.preferred_mentor = (
-        " ".join(preferred.lower().split())
+    mentee.preferred_mentor_name = (
+        "_".join(preferred.lower().split())
         if preferred else None
     )
     

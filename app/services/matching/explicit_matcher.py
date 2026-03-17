@@ -12,6 +12,7 @@ class ExplicitMatcher:
 
         self.matched_mentees = set()
         self.matches = []
+        self.pretty_matches = []
 
     # ---------- Public API ----------
 
@@ -20,7 +21,7 @@ class ExplicitMatcher:
         self._match_mentor_driven()
         self._match_mentee_driven()
 
-        return self.matches, self._get_remaining()
+        return self.matches, self._get_remaining(), self.pretty_matches, self.mentor_capacity
 
     # ---------- Phase 1: Mutual ----------
 
@@ -29,14 +30,14 @@ class ExplicitMatcher:
             if self._is_full(mentor):
                 continue
 
-            for mentee_id in mentor.preferred_mentees or []:
+            for mentee_id in mentor.preferred_mentee_ids or []:
                 mentee = self.mentee_lookup.get(mentee_id)
 
                 if not self._valid_pair(mentor, mentee):
                     continue
 
                 if mentee.preferred_mentor_id == mentor.id:
-                    self._assign(mentor, mentee)
+                    self._assign(mentor, mentee, "mutual_explicit")
 
                     if self._is_full(mentor):
                         break
@@ -48,13 +49,13 @@ class ExplicitMatcher:
             if self._is_full(mentor):
                 continue
 
-            for mentee_id in mentor.preferred_mentees or []:
+            for mentee_id in mentor.preferred_mentee_ids or []:
                 mentee = self.mentee_lookup.get(mentee_id)
 
                 if not self._valid_pair(mentor, mentee):
                     continue
 
-                self._assign(mentor, mentee)
+                self._assign(mentor, mentee, "mentor_explicit")
 
                 if self._is_full(mentor):
                     break
@@ -74,12 +75,21 @@ class ExplicitMatcher:
             if not mentor or self._is_full(mentor):
                 continue
 
-            self._assign(mentor, mentee)
+            self._assign(mentor, mentee, "mentee_explicit")
 
     # ---------- Core helpers ----------
 
-    def _assign(self, mentor, mentee):
-        self.matches.append((mentor, mentee))
+    def _assign(self, mentor, mentee, match_type):
+        self.matches.append({
+            'mentor_id': mentor.id,
+            'mentor_name': mentor.name,
+            'mentee_id': mentee.id,
+            'mentee_name': mentee.name,
+            'score': 100,  # explicit matches get full score
+            'breakdown': {'explicit_choice': True},
+            'match_type': match_type
+        })
+        self.pretty_matches.append((mentor.name, mentee.name))
         self.matched_mentees.add(mentee.id)
         self.mentor_capacity[mentor.id] -= 1
 

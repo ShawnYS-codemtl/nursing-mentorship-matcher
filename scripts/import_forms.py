@@ -1,8 +1,7 @@
 from app.services.google_sheets import get_mentor_rows, get_mentee_rows
-from app.services.form_processors import process_mentor_form_submission, process_mentee_form_submission
+from app.services.parsing.form_processors import process_mentor_form_submission, process_mentee_form_submission
 from app.database import SessionLocal
-from app.models.mentor import Mentor
-from app.models.mentee import Mentee
+from app.models import Mentor, Mentee
 
 def normalize(name: str):
     if not name:
@@ -78,6 +77,9 @@ def main():
             existing = session.query(Mentor).filter_by(email=mentor.email).first()
             if not existing:
                 session.add(mentor)
+        
+        # Add all users
+        session.commit()
         
         # Resolve name preferences to IDs
         resolve_preferences(session)

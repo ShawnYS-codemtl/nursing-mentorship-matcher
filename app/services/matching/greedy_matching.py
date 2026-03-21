@@ -1,4 +1,7 @@
 from app.services.matching.scoring import calculate_match_score
+import copy
+
+
 
 def run_matching_algorithm(valid_mentors, valid_mentees, mentor_capacity_map):
     """
@@ -10,6 +13,7 @@ def run_matching_algorithm(valid_mentors, valid_mentees, mentor_capacity_map):
     3. Greedily assign matches in priority order
     4. Track unmatched participants and reasons
     """
+    capacity_for_flow = copy.deepcopy(mentor_capacity_map)
     
     # Step 1: Calculate all possible matches with scores
     all_possible_matches = []
@@ -48,7 +52,7 @@ def run_matching_algorithm(valid_mentors, valid_mentees, mentor_capacity_map):
         if mentee.id in assigned_mentees:
             continue  # Mentee already matched
         
-        if mentor_capacity_map[mentor.id] <= 0:
+        if capacity_for_flow[mentor.id] <= 0:
             continue
         
         # Assign match
@@ -65,7 +69,7 @@ def run_matching_algorithm(valid_mentors, valid_mentees, mentor_capacity_map):
         pretty_matches.append((mentor.name, mentee.name))
         
         assigned_mentees.add(mentee.id)
-        mentor_capacity_map[mentor.id] -= 1
+        capacity_for_flow[mentor.id] -= 1
     
     # Step 4: Identify unmatched participants and reasons
     matched_mentee_ids = {m['mentee_id'] for m in matches}

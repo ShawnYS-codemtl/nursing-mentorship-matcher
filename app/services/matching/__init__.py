@@ -1,2 +1,3 @@
 from .explicit_matcher import ExplicitMatcher
-from .matching_engine import run_matching_algorithm
+from .greedy_matching import run_matching_algorithm
+from .flow_matching import run_flow_matching_v2, run_flow_matching_v1

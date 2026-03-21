@@ -1,0 +1,79 @@
+Fri, Mar 6
+- created GitHub repository, project structure
+- initialized Python virtual env: python -m venv venv
+- activated the environment: source venv/bin/activate
+- installed core dependencies: pip install flask sqlalchemy pandas
+- record packages in requirements.txt: pip freeze > requirements.txt
+
+Sat, Mar 7
+- created SQLAlchemy table definitions in models/
+- models/__init__.py imports the models
+- database.py runs the script to initialize the db
+
+Mon, Mar 9
+- created the form template -> sent for feedback
+- created google_forms.py 
+- implemented process_mentor_form_submission:
+    - need to change the names of rows
+
+Tue, Mar 10
+- completed form_processors.py for mentee
+- linked forms to spreadsheet
+- created google cloud project
+    - enabled google sheets API
+    - created service account credentials
+    - generated credentials file
+    - shared google sheet with service account
+    - connect to spreadsheet in google_sheets.py
+
+Need:
+- populate table with test data using script
+- test form_processors
+
+Wed, Mar 11
+- wrote the scripts to insert test data
+- fixed mismatches between sheets columns and column mapping (whitespaces)
+- reviewed processed data from form_processors for Mentor and Mentee
+- python -m scripts.import_forms -> need to run scripts like this from project root
+
+Fri, Mar 13
+- import processed data into database
+- created reset_db script
+
+Sat, Mar 14
+- started working on the scoring function
+    - reviewed weights, hard constraints, scoring up to specialities
+- test files in claude
+
+Sun, Mar 15
+- wrote function to convert preferred mentor/mentee names to ids -> easier for logic
+- fixed bug in form with extra whitespace -> column mapping was not working
+- started changing scoring based on testing (tweaking)
+- thinking of locking in explicit matches before matching 
+    -> need to write a function for that and update the weights
+
+Tue, Mar 17
+- updated folder structure with services packages
+- fixed bug with resolve_preferences in import_forms.py -> db commits
+- implemented explicit_matcher class to match explicit preferences 
+- implemented scoring function, adjusting weights to not include explicit preferences
+- implemented greedy algorithm (capacitated bipartite matching problem) 
+- updated outputs of explicit matcher and algo to be the same 
+- ran tests with run_matching.py script to check matches on dataset
+- watched a video on min cost max flow
+
+next: - implement min cost max flow algorithm
+- generate match explanation function
+- unit test each function?
+
+Wed, Mar 18
+- tested the max-flow-min-cost algorithm on test data
+- modified data such as specific preferences to names, removed none as option
+- tried modifying the mfmc algorithm for better results
+
+Fri, Mar 20
+- modified data -> made sure program and years matched for each person
+- debugged issue with missing unmatched mentors ->
+    - mutable state was being shared across algorithms (mentor_capacity_map)
+    - greedy algorithm modified the state and flow algorithm was using the modified state 
+    - solution: make a deepcopy of the state and use that instead in the greedy

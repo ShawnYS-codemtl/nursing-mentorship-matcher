@@ -1,7 +1,9 @@
-from app.services.google_sheets import get_mentor_rows, get_mentee_rows
+from app.services.data_sources.google_sheets import GoogleSheetsDataSource
+from app.services.data_sources.csv_source import CSVDataSource
 from app.services.parsing.form_processors import process_mentor_form_submission, process_mentee_form_submission
 from app.database import SessionLocal
 from app.models import Mentor, Mentee
+import argparse
 
 def normalize(name: str):
     if not name:
@@ -58,11 +60,26 @@ def resolve_preferences(session):
             mentee.preferred_mentor_id = mentor.id
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source", choices=["sheets", "csv"], default="sheets")
+    parser.add_argument("--mentor_csv", help="Path to mentor CSV")
+    parser.add_argument("--mentee_csv", help="Path to mentee CSV")
+
+    args = parser.parse_args()
+
+    # Select data source
+    if args.source == "sheets":
+        data_source = GoogleSheetsDataSource()
+    else:
+        if not args.mentor_csv or not args.mentee_csv:
+            raise ValueError("CSV source requires --mentor_csv and --mentee_csv")
+        data_source = CSVDataSource(args.mentor_csv, args.mentee_csv)
     session = SessionLocal()
 
     try:
-        mentor_rows = get_mentor_rows()
-        mentee_rows = get_mentee_rows()
+        mentor_rows = data_source.get_mentor_rows()
+        mentee_rows = data_source.get_mentee_rows()
+        print(f"Using data source: {args.source}")
 
         for row in mentee_rows:
             mentee = process_mentee_form_submission(row)

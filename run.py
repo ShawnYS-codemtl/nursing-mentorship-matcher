@@ -1,12 +1,7 @@
-from flask import Flask
-import app.models
+from app.routes import create_app
 from app.database import init_db
 
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Mentorship Matcher Running"
+app = create_app()
 
 if __name__ == "__main__":
     init_db()

@@ -9,12 +9,12 @@ def create_app():
     from app.routes.matches import matches_bp
     from app.routes.matching import matching_bp
     # from app.routes.import_routes import import_bp
-    # from app.routes.stats import stats_bp
+    from app.routes.stats import stats_bp
 
     app.register_blueprint(matches_bp)
     app.register_blueprint(matching_bp)
     # app.register_blueprint(import_bp)
-    # app.register_blueprint(stats_bp)
+    app.register_blueprint(stats_bp)
     print(app.url_map)
 
     @app.route("/")

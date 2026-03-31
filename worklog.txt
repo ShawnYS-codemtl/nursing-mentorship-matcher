@@ -77,3 +77,63 @@ Fri, Mar 20
     - mutable state was being shared across algorithms (mentor_capacity_map)
     - greedy algorithm modified the state and flow algorithm was using the modified state 
     - solution: make a deepcopy of the state and use that instead in the greedy
+
+Sat, Mar 21
+- need to parse other languages (in case they name more than one)
+- maybe need a way to identify if the answer to any question is Other for manual review
+- editing form descriptions to be more clear
+
+Sun, Mar 22
+- Introduced DataSource abstraction for flexible data loading
+- Added GoogleSheetsDataSource and CSVDataSource implementations
+- Integrated source selection via CLI arguments (--source)
+- Enabled importing mentor and mentee data from CSV files
+- Preserved existing parsing and database insertion logic
+- ex: (venv) (base) shawnyatsin@Shawns-MacBook-Air nursing-mentorship-matcher % python -m scripts.import_forms \   
+  --source csv \
+  --mentor_csv app/data/mentors.csv \
+  --mentee_csv app/data/mentees.csv
+
+Tue, Mar 24
+- Wrote requirements document and implementation plan
+- Will need to create a React project at the project root and separate the backend 
+- created an app factory (routes/__init__.py) and registered two blueprints
+- created /matches endpoint -> Return fully usable frontend data, not raw DB rows.
+    - .order_by(Match.match_score.desc())   could add 
+
+- created persist_matches.py -> function run_and_persist(matches)
+    - takes the output of your matching algorithm → inserts Match records into the DB
+    IMPROVEMENT LATER
+    - instead of deleting everything -> only overwrite non-locked matches
+
+- created /matching endpoint -> runs the matching algorithm and data persistance
+    - returns success and count of matches created
+
+- tested endpoints in Postman
+- updated run.py to use the create_app from app factory (was getting 404 error)
+- consider moving init_db from run.py after deploying to production (moving into a CLI command)
+
+next
+- implement /stats, /unmatched (done)
+
+Thu, Mar 26
+- implemented /stats, /unmatched, /matches/override 
+- some ideas for future
+    - /unmatched → minimal + maybe 1–2 key fields (e.g., program)
+    - Detailed info → separate endpoints (ex: /mentors/<id>) 
+    - Override UI → fetch full profiles dynamically
+    - Preview endpoint: POST /matches/preview
+    - locking mechanism endpoint: POST /matches/lock
+    - modify your matching algorithm to respect locked/manual matches during re-runs (this is the next real complexity jump)
+- next steps:
+    - the import, export endpoint
+    - frontend (simple, to test endpoints more easily like POST requests)
+  
+Sat, Mar 29
+- implemented import_forms into API call
+    - organized the script into separate services (import_data, resolve_preferences -> import_service, resolve)
+    - importing csv files from a request form (would be from React UI)
+- implemented export csv file of matches
+    - improvements: could filter based on manual override
+- tested endpoints in Postman
+- next: frontend

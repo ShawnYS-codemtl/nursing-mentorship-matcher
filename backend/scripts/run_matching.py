@@ -1,6 +1,7 @@
 from app.database import SessionLocal
 from app.models import Mentor, Mentee
 from app.services.matching import ExplicitMatcher, run_matching_algorithm, run_flow_matching_v2, run_flow_matching_v1
+from app.services.matching.persist_matches import run_matching_and_persist
 
 def main():
     session = SessionLocal()
@@ -35,6 +36,8 @@ def main():
     final_matches_greedy = locked_matches + scored_matches_greedy['matches']
     final_matches_flow = locked_matches + scored_matches_flow['matches']
 
+    run_matching_and_persist(final_matches_flow)
+
 
     # print(final_matches)
 
@@ -45,17 +48,17 @@ def main():
     unmatched_mentees_fl = []
     unmatched_mentors_fl = []
 
-    for mentee in scored_matches_greedy['unmatched_mentees']:
-        unmatched_mentees_gr.append(mentee["name"])
+    # for mentee in scored_matches_greedy['unmatched_mentees']:
+    #     unmatched_mentees_gr.append(mentee["name"])
     
-    for mentor in scored_matches_greedy['unmatched_mentors']:
-        unmatched_mentors_gr.append(mentor["name"])
+    # for mentor in scored_matches_greedy['unmatched_mentors']:
+    #     unmatched_mentors_gr.append(mentor["name"])
 
     # for mentee in scored_matches_flow['unmatched_mentees']:
     #     unmatched_mentees_fl.append(mentee["name"])
     
-    # for mentor in scored_matches_flow['unmatched_mentors']:
-    #     unmatched_mentors_fl.append(mentor["name"])
+    for mentor in scored_matches_flow['unmatched_mentors']:
+        unmatched_mentors_fl.append(mentor["name"])
     
     
     
@@ -63,20 +66,20 @@ def main():
     # print(pretty_locked_matches)
 
     print("Greedy Matches:", len(final_matches_greedy) )
-    print(final_matches_greedy)
+    # print(final_matches_greedy)
 
-    print("Unmatched mentees greedy:", len(unmatched_mentees_gr))
-    print(unmatched_mentees_gr)
-    print("Unmatched mentors greedy:", len(unmatched_mentors_gr))
-    print(unmatched_mentors_gr)
+    # print("Unmatched mentees greedy:", len(unmatched_mentees_gr))
+    # print(unmatched_mentees_gr)
+    # print("Unmatched mentors greedy:", len(unmatched_mentors_gr))
+    # print(unmatched_mentors_gr)
 
     print("Flow Matches:", len(final_matches_flow) )
-    print(final_matches_flow)
+    # print(final_matches_flow)
 
     # print("Unmatched mentees:", len(unmatched_mentees_fl))
     # print(unmatched_mentees_fl)
-    # print("Unmatched mentors:", len(unmatched_mentors_fl))
-    # print(unmatched_mentors_fl)
+    print("Unmatched mentors:", len(unmatched_mentors_fl))
+    print(unmatched_mentors_fl)
 
 
     

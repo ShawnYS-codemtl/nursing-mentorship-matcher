@@ -129,7 +129,7 @@ Thu, Mar 26
     - the import, export endpoint
     - frontend (simple, to test endpoints more easily like POST requests)
   
-Sat, Mar 29
+Sat, Mar 28
 - implemented import_forms into API call
     - organized the script into separate services (import_data, resolve_preferences -> import_service, resolve)
     - importing csv files from a request form (would be from React UI)
@@ -137,3 +137,9 @@ Sat, Mar 29
     - improvements: could filter based on manual override
 - tested endpoints in Postman
 - next: frontend
+
+Mon, Mar 30
+- moved backend files to backend folder
+- created a new virtual environment, imported dependencies
+- create vite project -> frontend folder
+- test API call -> need to run the backend and the frontend separately

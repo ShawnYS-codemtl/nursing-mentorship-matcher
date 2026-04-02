@@ -53,7 +53,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
         logger.debug(f"Calculating match: {mentor.name} → {mentee.name}")
     
     score_breakdown = {
-        'explicit_choice': 0,
+        'explicit_choice': False,
         'program_alignment': 0,
         'specialty_alignment': 0,
         'identity_extracurricular': 0,

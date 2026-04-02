@@ -1,43 +1,56 @@
-import React from "react";
+import React, { useState } from "react";
 import { useMatches } from "../../hooks/useMatches";
+import MatchRow from "./matches/MatchRow";
 
 const MatchesTable: React.FC = () => {
   const { matches, loading, error } = useMatches();
+  const [collapsed, setCollapsed] = useState(false);
 
   if (loading) return <p>Loading matches...</p>;
   if (error) return <p>Error loading matches</p>;
 
   return (
     <section className="matches-table mb-4">
-      <h2 className="text-lg font-bold mb-2">Matches</h2>
-      <table className="w-full border">
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>Mentor</th>
-            <th>Mentee</th>
-            <th>Score</th>
-          </tr>
-        </thead>
-        <tbody>
-          {matches.length === 0 ? (
-            <tr>
-              <td colSpan={3} className="text-center py-4">
-                No matches yet
-              </td>
-            </tr>
-          ) : (
-            matches.map((m) => (
-              <tr key={`${m.mentor.id}-${m.mentee.id}`}>
-                <td>{m.id}</td>
-                <td>{m.mentor.name}</td>
-                <td>{m.mentee.name}</td>
-                <td>{m.score}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+
+        <div className="flex items-center mb-2">
+            <h2 className="text-lg font-bold mr-2">Matches</h2>
+
+            <button
+                onClick={() => setCollapsed((prev) => !prev)}
+                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+            >
+                {collapsed ? "▶" : "▼"}
+            </button>
+        </div>
+        { !collapsed && 
+            <table className="w-full border table-fixed">
+                <thead>
+                <tr className="bg-gray-100">
+                    <th className="w-[5%] text-left"></th>
+                    <th className="w-[10%] text-left">Id</th>
+                    <th className="w-[20%] text-left">Mentor</th>
+                    <th className="w-[20%] text-left">Mentee</th>
+                    <th className="w-[10%] text-left">Score</th>
+                    <th className="w-[15%] text-left">Match Type</th>
+                    <th className="w-[10%] text-left">Lock</th>
+                    <th className="w-[10%] text-left">Flag</th>
+                </tr>
+                </thead>
+                <tbody>
+                {matches.length === 0 ? (
+                    <tr>
+                    <td colSpan={3} className="text-center py-4">
+                        No matches yet
+                    </td>
+                    </tr>
+                ) : (
+                    matches.map((match) => (
+                        <MatchRow key={match.id} match={match} />
+                    ))
+                )}
+                </tbody>
+            </table>
+        }
     </section>
   );
 };

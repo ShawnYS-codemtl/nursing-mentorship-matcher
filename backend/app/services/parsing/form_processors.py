@@ -127,7 +127,7 @@ def process_mentee_form_submission(row: dict) -> Mentee:
     )
     
     # Languages (checkboxes)
-    mentee.languages = parse_checkbox_field(
+    mentee.languages_needed = parse_checkbox_field(
         row.get(COLUMN_MAP["languages"], 'English')
     )
     

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { importData, runMatching } from "../../services/api";
+import { importData, runMatching, exportData } from "../../services/api";
 import type { ImportSource } from "../../types";
 
 interface Props {
@@ -14,7 +14,9 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
     try {
       setLoading(label);
       await action();
-      onRefresh(); // refresh data after action
+      if (label !== "Export") {
+        onRefresh();
+      }
     } catch (err) {
       console.error(err);
       alert(`${label} failed`);
@@ -50,13 +52,13 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
         {loading === "Run Matching" ? "Running..." : "Run Matching"}
       </button>
 
-      {/* <button
+      <button
         onClick={() => handleAction(exportData, "Export")}
         disabled={loading !== null}
         className="bg-gray-500 text-white px-4 py-2 rounded"
       >
         {loading === "Export" ? "Exporting..." : "Export"}
-      </button> */}
+      </button>
     </div>
   );
 };

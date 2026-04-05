@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { importData } from "../../services/api";
+import { importData, runMatching } from "../../services/api";
 import type { ImportSource } from "../../types";
 
 interface Props {
@@ -42,7 +42,7 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
         {loading === "Import" ? "Importing..." : "Import"}
       </button>
 
-      {/* <button
+      <button
         onClick={() => handleAction(runMatching, "Run Matching")}
         disabled={loading !== null}
         className="bg-green-500 text-white px-4 py-2 rounded"
@@ -50,7 +50,7 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
         {loading === "Run Matching" ? "Running..." : "Run Matching"}
       </button>
 
-      <button
+      {/* <button
         onClick={() => handleAction(exportData, "Export")}
         disabled={loading !== null}
         className="bg-gray-500 text-white px-4 py-2 rounded"

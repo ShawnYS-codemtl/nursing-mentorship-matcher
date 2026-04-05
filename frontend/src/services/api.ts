@@ -32,3 +32,12 @@ export const importData = async (body: ImportRequest): Promise<void> => {
     // return res.json();
 }
 
+export const runMatching = async () => {
+  const res = await fetch(`${BASE_URL}/run-matching`, {
+    method: "POST",
+  });
+
+  if (!res.ok) throw new Error("Matching failed");
+  return res.json();
+};
+

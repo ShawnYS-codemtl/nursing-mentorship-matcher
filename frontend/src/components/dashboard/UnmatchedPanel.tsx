@@ -2,8 +2,12 @@ import React, {useState} from "react";
 import { useUnmatched } from "../../hooks/useUnmatched";
 import type { DetailedMentee, AvailableMentor } from "../../types";
 
-const UnmatchedPanel: React.FC = () => {
-  const { mentees, mentors, loading, error } = useUnmatched();
+interface Props {
+  refreshKey: number;
+}
+
+const UnmatchedPanel: React.FC<Props> = ({refreshKey}) => {
+  const { mentees, mentors, loading, error } = useUnmatched(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
   const [selectedMentee, setSelectedMentee] = useState<DetailedMentee | null>(null);
   const [selectedMentor, setSelectedMentor] = useState<AvailableMentor | null>(null);

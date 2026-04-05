@@ -1,8 +1,12 @@
 import React, {useState} from "react";
 import { useStats } from "../../hooks/useStats";
 
-const StatsPanel: React.FC = () => {
-  const { stats, loading, error } = useStats();
+interface Props {
+  refreshKey: number;
+}
+
+const StatsPanel: React.FC<Props> = ({refreshKey}) => {
+  const { stats, loading, error } = useStats(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
 
   if (loading) return <p>Loading stats...</p>;

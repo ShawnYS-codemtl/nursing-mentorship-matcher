@@ -1,4 +1,4 @@
-import type { Match, Stats, UnmatchedResponse } from "../types";
+import type { Match, Stats, UnmatchedResponse, ImportRequest } from "../types";
 
 const BASE_URL = "http://127.0.0.1:5000";
 
@@ -19,3 +19,16 @@ export const fetchUnmatched = async (): Promise<UnmatchedResponse> => {
   if (!res.ok) throw new Error("Failed to fetch unmatched mentees");
   return res.json();
 };
+
+export const importData = async (body: ImportRequest): Promise<void> => {
+    const res = await fetch(`${BASE_URL}/import`, {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error("Import failed");
+    // return res.json();
+}
+

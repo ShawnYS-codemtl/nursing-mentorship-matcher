@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { DetailedMentee, AvailableMentor } from "../types";
 import { fetchUnmatched } from "../services/api";
 
-export const useUnmatched = () => {
+export const useUnmatched = (refreshKey: number) => {
   const [mentees, setMentees] = useState<DetailedMentee[]>([]);
   const [mentors, setMentors] = useState<AvailableMentor[]>([]);
 
@@ -17,7 +17,7 @@ export const useUnmatched = () => {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [refreshKey]);
 
   return { mentees, mentors, loading, error };
 };

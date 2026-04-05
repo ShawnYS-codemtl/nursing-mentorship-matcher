@@ -2,8 +2,12 @@ import React, { useState } from "react";
 import { useMatches } from "../../hooks/useMatches";
 import MatchRow from "./matches/MatchRow";
 
-const MatchesTable: React.FC = () => {
-  const { matches, loading, error } = useMatches();
+interface Props {
+  refreshKey: number;
+}
+
+const MatchesTable: React.FC<Props> = ({refreshKey}) => {
+  const { matches, loading, error } = useMatches(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
 
   if (loading) return <p>Loading matches...</p>;

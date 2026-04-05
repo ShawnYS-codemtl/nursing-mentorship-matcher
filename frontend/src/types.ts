@@ -96,3 +96,9 @@ export interface UnmatchedResponse {
   unmatched_mentees: DetailedMentee[];
   available_mentors: AvailableMentor[];
 }
+
+export type ImportSource = "csv" | "google_sheets";
+
+export interface ImportRequest {
+  source: ImportSource;
+}

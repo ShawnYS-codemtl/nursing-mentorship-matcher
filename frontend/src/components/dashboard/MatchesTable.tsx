@@ -10,7 +10,7 @@ const MatchesTable: React.FC = () => {
   if (error) return <p>Error loading matches</p>;
 
   return (
-    <section className="matches-table mb-4">
+    <section className="matches-table mb-2">
 
         <div className="flex items-center mb-2">
              <button

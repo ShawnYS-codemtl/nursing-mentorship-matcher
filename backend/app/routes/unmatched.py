@@ -24,7 +24,14 @@ def get_unmatched():
             {
                 "id": m.id,
                 "name": m.name,
-                "email": m.email
+                "email": m.email,
+                "program": m.program,
+                "year_in_program": m.year_in_program,
+                "specialties": m.specialties,
+                "languages_needed": m.languages_needed,
+                "race_ethnicity": m.race_ethnicity, 
+                "lgbtq_status": m.lgbtq_status,
+                "extracurricular_interests": m.extracurricular_interests
             }
             for m in unmatched_mentees
         ]
@@ -64,15 +71,24 @@ def get_unmatched():
                     "email": mentor.email,
                     "capacity": mentor.max_mentees,
                     "current_matches": match_count,
-                    "remaining_capacity": remaining_capacity
+                    "remaining_capacity": remaining_capacity,
+                    "program": mentor.program,
+                    "year_in_program": mentor.year_in_program,
+                    "specialties": mentor.specialties,
+                    "languages": mentor.languages,
+                    "race_ethnicity": mentor.race_ethnicity, 
+                    "lgbtq_status": mentor.lgbtq_status,
+                    "extracurricular_interests": mentor.extracurricular_interests
                 })
+        
+        available_mentors_result.sort(
+            key=lambda x: x["remaining_capacity"],
+            reverse=True
+        )
 
         return jsonify({
             "unmatched_mentees": unmatched_mentees_result,
-            "available_mentors": available_mentors_result.sort(
-                key=lambda x: x["remaining_capacity"],
-                reverse=True
-            )
+            "available_mentors": available_mentors_result
         })
 
     except Exception as e:

@@ -1,4 +1,4 @@
-import type { Match, Stats, Mentee } from "../types";
+import type { Match, Stats, UnmatchedResponse } from "../types";
 
 const BASE_URL = "http://127.0.0.1:5000";
 
@@ -14,7 +14,7 @@ export const fetchStats = async (): Promise<Stats> => {
   return res.json();
 };
 
-export const fetchUnmatched = async (): Promise<Mentee[]> => {
+export const fetchUnmatched = async (): Promise<UnmatchedResponse> => {
   const res = await fetch(`${BASE_URL}/unmatched`);
   if (!res.ok) throw new Error("Failed to fetch unmatched mentees");
   return res.json();

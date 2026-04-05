@@ -14,6 +14,38 @@ export interface Person {
   email: string;
 }
 
+export interface DetailedMentee {
+  id: number;
+  name: string;
+  email: string;
+  program: string;
+  year_in_program: number;
+  specialties: string[];
+  languages_needed: string[];
+  race_ethnicity: string;
+  lgbtq_status: string;
+  extracurricular_interests: string[];
+}
+
+
+export interface AvailableMentor {
+  id: number;
+  name: string;
+  email: string;
+
+  capacity: number;
+  current_matches: number;
+  remaining_capacity: number;
+
+  program: string;
+  year_in_program: number;
+  specialties: string[];
+  languages: string[];
+  race_ethnicity: string;
+  lgbtq_status: string;
+  extracurricular_interests: string[];
+}
+
 export interface MatchReason {
   // flags
   explicit_choice?: boolean;
@@ -58,4 +90,9 @@ export interface Stats {
     min_score: number;
     max_score: number;
     median_score: number;
+}
+
+export interface UnmatchedResponse {
+  unmatched_mentees: DetailedMentee[];
+  available_mentors: AvailableMentor[];
 }

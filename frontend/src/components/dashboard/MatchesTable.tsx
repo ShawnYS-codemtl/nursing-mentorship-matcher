@@ -13,14 +13,16 @@ const MatchesTable: React.FC = () => {
     <section className="matches-table mb-4">
 
         <div className="flex items-center mb-2">
-            <h2 className="text-lg font-bold mr-2">Matches</h2>
-
-            <button
+             <button
                 onClick={() => setCollapsed((prev) => !prev)}
                 className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
             >
                 {collapsed ? "▶" : "▼"}
             </button>
+
+            <h2 className="text-lg font-bold mx-2">Matches</h2>
+
+           
         </div>
         { !collapsed && 
             <table className="w-full border table-fixed">

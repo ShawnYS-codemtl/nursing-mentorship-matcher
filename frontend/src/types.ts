@@ -49,7 +49,13 @@ export interface Match {
 }
 
 export interface Stats {
-  totalMentors: number;
-  totalMentees: number;
-  totalMatches: number;
+    mentors: number;
+    mentees: number;
+    matches: number;
+    unmatched_mentees: number;
+    available_mentors: number;
+    avg_score: number;
+    min_score: number;
+    max_score: number;
+    median_score: number;
 }

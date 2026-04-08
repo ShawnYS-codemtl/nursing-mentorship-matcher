@@ -62,3 +62,11 @@ export const exportData = async (): Promise<void> => {
   window.URL.revokeObjectURL(url);
 };
 
+export const unmatch = async (matchId: number): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/matches/${matchId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) throw new Error("Failed to unmatch");
+};
+

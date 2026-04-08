@@ -4,9 +4,10 @@ import MatchBreakdown from "./MatchBreakdown";
 
 interface Props {
   match: Match;
+  onUnmatch: (matchId: number) => void;
 }
 
-const MatchRow: React.FC<Props> = ({ match }) => {
+const MatchRow: React.FC<Props> = ({ match, onUnmatch }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -23,7 +24,18 @@ const MatchRow: React.FC<Props> = ({ match }) => {
         <td className="w-[10%] border-t">{match.score}</td>
         <td className="w-[15%] border-t">{match.match_type}</td>
         <td className="w-[10%] text-left border-t">Lock</td>
-        <td className="w-[10%] text-left border-t">Flag</td>
+        <td className="w-[10%] text-left border-t">
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // 🔑 prevent row expand toggle
+                onUnmatch(match.id);
+              }}
+              className="text-red-500 hover:underline"
+            >
+              Unmatch
+            </button>
+
+        </td>
       </tr>
 
       {/* Expanded row */}

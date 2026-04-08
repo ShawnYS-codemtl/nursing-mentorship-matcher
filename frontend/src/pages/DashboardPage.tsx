@@ -17,7 +17,7 @@ const DashboardPage: React.FC = () => {
       <StatsPanel refreshKey={refreshKey} />
 
       {/* Matches table */}
-      <MatchesTable refreshKey={refreshKey}/>
+      <MatchesTable refreshKey={refreshKey} onRefresh={refresh} />
 
       {/* Unmatched section */}
       <UnmatchedPanel refreshKey={refreshKey}/>

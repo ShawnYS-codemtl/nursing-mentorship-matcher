@@ -154,3 +154,28 @@ def override_match():
 
     finally:
         session.close()
+
+@matches_bp.route("/matches/<int:match_id>", methods=["DELETE"])
+def delete_match(match_id):
+    session = SessionLocal()
+
+    try:
+        match = session.query(Match).filter(Match.id == match_id).first()
+
+        if not match:
+            return jsonify({"error": "Match not found"}), 404
+
+        session.delete(match)
+        session.commit()
+
+        return jsonify({
+            "message": "Match successfully removed",
+            "match_id": match_id
+        }), 200
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        session.close()

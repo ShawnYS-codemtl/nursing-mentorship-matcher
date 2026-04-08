@@ -1,14 +1,26 @@
 import React, { useState } from "react";
 import { useMatches } from "../../hooks/useMatches";
 import MatchRow from "./matches/MatchRow";
+import { unmatch } from "../../services/api";
 
 interface Props {
   refreshKey: number;
+  onRefresh: () => void;
 }
 
-const MatchesTable: React.FC<Props> = ({refreshKey}) => {
+const MatchesTable: React.FC<Props> = ({refreshKey, onRefresh}) => {
   const { matches, loading, error } = useMatches(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleUnmatch = async (matchId: number) => {
+    try {
+        await unmatch(matchId);
+        onRefresh();
+    } catch (err) {
+        console.error(err);
+        alert("Failed to unmatch");
+    }
+    };
 
   if (loading) return <p>Loading matches...</p>;
   if (error) return <p>Error loading matches</p>;
@@ -39,7 +51,7 @@ const MatchesTable: React.FC<Props> = ({refreshKey}) => {
                     <th className="w-[10%] text-left">Score</th>
                     <th className="w-[15%] text-left">Match Type</th>
                     <th className="w-[10%] text-left">Lock</th>
-                    <th className="w-[10%] text-left">Flag</th>
+                    <th className="w-[10%] text-left">Action</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -51,7 +63,7 @@ const MatchesTable: React.FC<Props> = ({refreshKey}) => {
                     </tr>
                 ) : (
                     matches.map((match) => (
-                        <MatchRow key={match.id} match={match} />
+                        <MatchRow key={match.id} match={match} onUnmatch={handleUnmatch} />
                     ))
                 )}
                 </tbody>

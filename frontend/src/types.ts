@@ -102,3 +102,8 @@ export type ImportSource = "csv" | "google_sheets";
 export interface ImportRequest {
   source: ImportSource;
 }
+
+export interface OverrideMatchRequest {
+  mentor_id: number;
+  mentee_id: number;
+}

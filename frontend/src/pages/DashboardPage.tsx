@@ -20,7 +20,7 @@ const DashboardPage: React.FC = () => {
       <MatchesTable refreshKey={refreshKey} onRefresh={refresh} />
 
       {/* Unmatched section */}
-      <UnmatchedPanel refreshKey={refreshKey}/>
+      <UnmatchedPanel refreshKey={refreshKey} onRefresh={refresh}/>
 
       {/* Control panel with buttons */}
       <ControlPanel  onRefresh={refresh}/>

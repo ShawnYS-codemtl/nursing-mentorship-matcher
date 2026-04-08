@@ -1,16 +1,37 @@
 import React, {useState} from "react";
 import { useUnmatched } from "../../hooks/useUnmatched";
 import type { DetailedMentee, AvailableMentor } from "../../types";
+import { overrideMatch } from "../../services/api";
 
 interface Props {
   refreshKey: number;
+  onRefresh: () => void;
 }
 
-const UnmatchedPanel: React.FC<Props> = ({refreshKey}) => {
+const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
   const { mentees, mentors, loading, error } = useUnmatched(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
   const [selectedMentee, setSelectedMentee] = useState<DetailedMentee | null>(null);
   const [selectedMentor, setSelectedMentor] = useState<AvailableMentor | null>(null);
+  const handleAssign = async () => {
+    if (!selectedMentee || !selectedMentor) return;
+
+    try {
+      await overrideMatch({
+        mentor_id: selectedMentor.id,
+        mentee_id: selectedMentee.id,
+      });
+
+      // ✅ Clear selections AFTER success
+      setSelectedMentee(null);
+      setSelectedMentor(null);
+
+      onRefresh(); // 🔑 refresh all panels
+    } catch (err) {
+      console.error(err);
+      alert("Failed to assign match");
+    }
+  };
 
   if (loading) return <p>Loading unmatched mentees...</p>;
   if (error) return <p>Error loading unmatched mentees</p>;
@@ -78,6 +99,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey}) => {
         <button
             disabled={!selectedMentee || !selectedMentor}
             className="bg-blue-500 text-white px-4 py-2 rounded"
+            onClick={handleAssign}
           >
             Match Selected Pair
         </button>

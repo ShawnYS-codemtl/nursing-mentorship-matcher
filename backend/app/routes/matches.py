@@ -60,14 +60,14 @@ def override_match():
         data = request.get_json()
 
         mentee_id = data.get("mentee_id")
-        new_mentor_id = data.get("new_mentor_id")
+        mentor_id = data.get("mentor_id")
 
-        if not mentee_id or not new_mentor_id:
-            return jsonify({"error": "mentee_id and new_mentor_id required"}), 400
+        if not mentee_id or not mentor_id:
+            return jsonify({"error": "mentee_id and mentor_id required"}), 400
 
         # --- Fetch entities ---
         mentee = session.query(Mentee).filter(Mentee.id == mentee_id).first()
-        mentor = session.query(Mentor).filter(Mentor.id == new_mentor_id).first()
+        mentor = session.query(Mentor).filter(Mentor.id == mentor_id).first()
 
         if not mentee or not mentor:
             return jsonify({"error": "Mentor or Mentee not found"}), 404
@@ -84,17 +84,20 @@ def override_match():
                 return jsonify({"error": "Match is locked and cannot be overridden"}), 400
             
             # If same mentor → no-op
-            if existing_match.mentor_id == new_mentor_id:
+            if existing_match.mentor_id == mentor_id:
                 return jsonify({"status": "no change"}), 200
+        
+            session.delete(existing_match)
+            session.flush()  # 🔑 critical
 
         # --- Check mentor capacity ---
         match_count = (
             session.query(func.count(Match.id))
-            .filter(Match.mentor_id == new_mentor_id)
+            .filter(Match.mentor_id == mentor_id)
             .scalar()
         )
 
-        mentor = session.query(Mentor).filter(Mentor.id == new_mentor_id).first()
+        mentor = session.query(Mentor).filter(Mentor.id == mentor_id).first()
 
         if not mentor:
             return jsonify({"error": "Mentor not found"}), 404
@@ -104,13 +107,9 @@ def override_match():
 
         score, breakdown = calculate_match_score(mentor, mentee)
 
-        # --- Remove old match AFTER checks ---
-        if existing_match:
-            session.delete(existing_match)
-
         # --- Create new match ---
         new_match = Match(
-            mentor_id=new_mentor_id,
+            mentor_id=mentor_id,
             mentee_id=mentee_id,
             match_score=score,
             match_reason={"manual_override": True},
@@ -124,29 +123,9 @@ def override_match():
 
         # --- Return full object (frontend-ready) ---
         return jsonify({
-            "id": new_match.id,
-            "mentor": {
-                "id": mentor.id,
-                "name": mentor.name,
-                "email": mentor.email
-            },
-            "mentor_capacity": {
-                "capacity": mentor.max_mentees,
-                "current_matches": match_count,
-                "remaining_capacity": mentor.max_mentees - match_count
-            },
-            "mentee": {
-                "id": mentee.id,
-                "name": mentee.name,
-                "email": mentee.email
-            },
-            "score": new_match.match_score,
-            "match_type": new_match.match_type,
-            "is_manual_override": new_match.is_manual_override,
-            "is_locked": new_match.is_locked,
-            "match_reason": new_match.match_reason,
-            "created_at": new_match.created_at.isoformat()
-        })
+            "message": "Match overridden successfully",
+            "match_id": new_match.id
+        }), 201
 
     except Exception as e:
         session.rollback()

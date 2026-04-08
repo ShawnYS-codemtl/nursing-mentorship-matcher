@@ -1,4 +1,4 @@
-import type { Match, Stats, UnmatchedResponse, ImportRequest } from "../types";
+import type { Match, Stats, UnmatchedResponse, ImportRequest, OverrideMatchRequest } from "../types";
 
 const BASE_URL = "http://127.0.0.1:5000";
 
@@ -70,3 +70,19 @@ export const unmatch = async (matchId: number): Promise<void> => {
   if (!res.ok) throw new Error("Failed to unmatch");
 };
 
+export const overrideMatch = async (
+  body: OverrideMatchRequest
+): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/matches/override`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Override match failed");
+  }
+};

@@ -14,5 +14,5 @@ export const useMatches = (refreshKey: number) => {
       .finally(() => setLoading(false));
   }, [refreshKey]);
 
-  return { matches, loading, error };
+  return { matches, setMatches, loading, error };
 };

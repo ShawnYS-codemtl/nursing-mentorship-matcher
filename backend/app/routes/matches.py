@@ -158,3 +158,34 @@ def delete_match(match_id):
 
     finally:
         session.close()
+
+@matches_bp.route("/matches/<int:match_id>/lock", methods=["PATCH"])
+def toggle_match_lock(match_id):
+    session = SessionLocal()
+
+    try: 
+        data = request.get_json()
+        is_locked = data.get("is_locked")
+
+        if is_locked is None:
+            return {"error": "is_locked required"}, 400
+
+        match = session.get(Match, match_id)
+        if not match:
+            return {"error": "Match not found"}, 404
+
+        match.is_locked = is_locked
+
+        session.commit()
+
+        return {
+            "id": match.id,
+            "is_locked": match.is_locked
+        }
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+    finally:
+        session.close()

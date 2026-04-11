@@ -5,9 +5,10 @@ import MatchBreakdown from "./MatchBreakdown";
 interface Props {
   match: Match;
   onUnmatch: (matchId: number) => void;
+  onToggle: (matchId: number, newState: boolean) => void;
 }
 
-const MatchRow: React.FC<Props> = ({ match, onUnmatch }) => {
+const MatchRow: React.FC<Props> = ({ match, onUnmatch, onToggle }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -23,7 +24,19 @@ const MatchRow: React.FC<Props> = ({ match, onUnmatch }) => {
         <td className="w-[20%] text-left border-t">{match.mentee.name}</td>
         <td className="w-[10%] border-t">{match.score}</td>
         <td className="w-[15%] border-t">{match.match_type}</td>
-        <td className="w-[10%] text-left border-t">Lock</td>
+        <td className="w-[10%] text-left border-t">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(match.id, !match.is_locked)
+            }}
+            className={`px-2 py-1 rounded ${
+              match.is_locked ? "bg-red-500" : "bg-green-500"
+            } text-white`}
+          >
+            {match.is_locked ? "Unlock 🔓" : "Lock 🔐"}
+          </button>
+        </td>
         <td className="w-[10%] text-left border-t">
             <button
               onClick={(e) => {

@@ -4,6 +4,8 @@ from app.services.matching.flow_matching import run_flow_matching_v1
 from app.database import SessionLocal
 from app.models import Mentor, Mentee
 from app.services.matching.explicit_matcher import ExplicitMatcher
+from app.services.matching.locked_matches import get_locked_matches_from_db, apply_locked_matches
+import traceback
 
 matching_bp = Blueprint("matching", __name__)
 
@@ -12,13 +14,17 @@ def run_matching():
     session = SessionLocal()
 
     try:
+
         mentors = session.query(Mentor).all()
         mentees = session.query(Mentee).all()
 
-        matcher = ExplicitMatcher(mentors, mentees)
-        locked_matches, (remaining_mentors, remaining_mentees), pretty_locked_matches, mentor_capacity_map = matcher.run()
+        locked_matches = get_locked_matches_from_db(session)
+        matched_mentees, mentor_capacity = apply_locked_matches(locked_matches, mentors, mentees)
+
+        matcher = ExplicitMatcher(mentors, mentees, pre_matched_mentees=matched_mentees, mentor_capacity=mentor_capacity)
+        explicit_matches, (remaining_mentors, remaining_mentees), pretty_explicit_matches, mentor_capacity_map = matcher.run()
         scored_matches = run_flow_matching_v1(remaining_mentors, remaining_mentees, mentor_capacity_map)
-        final_matches_flow = locked_matches + scored_matches['matches']
+        final_matches_flow = locked_matches + explicit_matches + scored_matches['matches']
         count = run_matching_and_persist(final_matches_flow)
 
         return jsonify({
@@ -27,4 +33,5 @@ def run_matching():
         })
 
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500

@@ -1,16 +1,15 @@
 class ExplicitMatcher:
-    def __init__(self, mentors, mentees):
+    def __init__(self, mentors, mentees, pre_matched_mentees=None, mentor_capacity=None):
         self.mentors = mentors
         self.mentees = mentees
 
         self.mentor_lookup = {m.id: m for m in mentors}
         self.mentee_lookup = {m.id: m for m in mentees}
 
-        self.mentor_capacity = {
+        self.matched_mentees = pre_matched_mentees or set()
+        self.mentor_capacity = mentor_capacity or {
             m.id: getattr(m, "max_mentees", 1) for m in mentors
         }
-
-        self.matched_mentees = set()
         self.matches = []
         self.pretty_matches = []
 

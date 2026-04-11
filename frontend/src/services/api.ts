@@ -86,3 +86,17 @@ export const overrideMatch = async (
     throw new Error(error.error || "Override match failed");
   }
 };
+
+export async function toggleMatchLock(id: number, is_locked: boolean) {
+  const res = await fetch(`${BASE_URL}/matches/${id}/lock`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ is_locked }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to toggle match lock");
+  }
+
+  return res.json();
+}

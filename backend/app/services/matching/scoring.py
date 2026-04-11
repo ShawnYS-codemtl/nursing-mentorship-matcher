@@ -53,7 +53,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
         logger.debug(f"Calculating match: {mentor.name} → {mentee.name}")
     
     score_breakdown = {
-        'explicit_choice': False,
+        'explicit_choice':False,
         'program_alignment': 0,
         'specialty_alignment': 0,
         'identity_extracurricular': 0,
@@ -277,7 +277,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
     # ==================== CALCULATE TOTAL ====================
     
     total_score = (
-        score_breakdown['explicit_choice'] +
+        # score_breakdown['explicit_choice'] +
         score_breakdown['program_alignment'] +
         score_breakdown['specialty_alignment'] +
         score_breakdown['identity_extracurricular'] +

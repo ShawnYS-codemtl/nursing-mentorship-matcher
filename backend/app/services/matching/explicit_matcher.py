@@ -1,3 +1,5 @@
+from app.services.matching.scoring import calculate_match_score 
+
 class ExplicitMatcher:
     def __init__(self, mentors, mentees, pre_matched_mentees=None, mentor_capacity=None):
         self.mentors = mentors
@@ -79,13 +81,15 @@ class ExplicitMatcher:
     # ---------- Core helpers ----------
 
     def _assign(self, mentor, mentee, match_type):
+        score, breakdown = calculate_match_score(mentor, mentee)
+        breakdown["explicit_choice"] = True
         self.matches.append({
             'mentor_id': mentor.id,
             'mentor_name': mentor.name,
             'mentee_id': mentee.id,
             'mentee_name': mentee.name,
-            'score': 100,  # explicit matches get full score
-            'breakdown': {'explicit_choice': True},
+            'score': score,
+            'breakdown': breakdown,
             'match_type': match_type
         })
         self.pretty_matches.append((mentor.name, mentee.name))

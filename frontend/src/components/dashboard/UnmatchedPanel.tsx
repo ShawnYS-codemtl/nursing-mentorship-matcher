@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import { useUnmatched } from "../../hooks/useUnmatched";
 import type { DetailedMentee, AvailableMentor } from "../../types";
 import { overrideMatch } from "../../services/api";
+import { useMatchScore } from "../../hooks/useMatchScore";
 
 interface Props {
   refreshKey: number;
@@ -13,6 +14,8 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedMentee, setSelectedMentee] = useState<DetailedMentee | null>(null);
   const [selectedMentor, setSelectedMentor] = useState<AvailableMentor | null>(null);
+  const { score, breakdown, loading: scoreLoading } = useMatchScore(selectedMentee, selectedMentor);
+
   const handleAssign = async () => {
     if (!selectedMentee || !selectedMentor) return;
 
@@ -95,6 +98,25 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
             )}
           </div>
         </div>
+        {selectedMentee && selectedMentor && (
+          <div className="mt-2 p-2 bg-yellow-100 rounded">
+            {scoreLoading ? (
+              <p>Calculating score...</p>
+            ) : (
+              <>
+                <p><strong>Score:</strong> {score}</p>
+
+                {breakdown && (
+                  <ul className="text-sm">
+                    {Object.entries(breakdown).map(([k, v]) => (
+                      <li key={k}>{k}: {String(v)}</li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         <button
             disabled={!selectedMentee || !selectedMentor}
@@ -114,7 +136,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
                 selectedMentee?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"
               }`}
             >
-              {m.name} ({m.program})
+              {m.name} ({m.program}) - Year: {m.year_in_program}
             </div>
           ))}
 
@@ -128,7 +150,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
                 selectedMentor?.id === m.id ? "bg-green-100" : "hover:bg-gray-100"
               }`}
             >
-              {m.name} - Remaining: {m.remaining_capacity}
+              {m.name} ({m.program}) - Year: {m.year_in_program}
             </div>
           ))}
         </div>

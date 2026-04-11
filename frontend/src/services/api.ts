@@ -1,4 +1,4 @@
-import type { Match, Stats, UnmatchedResponse, ImportRequest, OverrideMatchRequest } from "../types";
+import type { Match, Stats, UnmatchedResponse, ImportRequest, OverrideMatchRequest, ScoreBreakdown } from "../types";
 
 const BASE_URL = "http://127.0.0.1:5000";
 
@@ -97,6 +97,24 @@ export async function toggleMatchLock(id: number, is_locked: boolean) {
   if (!res.ok) {
     throw new Error("Failed to toggle match lock");
   }
+
+  return res.json();
+}
+
+export async function getMatchScore(payload: {
+  mentor_id: number;
+  mentee_id: number;
+}): Promise<{
+  score: number;
+  breakdown: ScoreBreakdown;
+}>  {
+  const res = await fetch(`${BASE_URL}/match-score`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch score");
 
   return res.json();
 }

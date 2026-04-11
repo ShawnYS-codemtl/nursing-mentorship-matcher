@@ -107,3 +107,16 @@ export interface OverrideMatchRequest {
   mentor_id: number;
   mentee_id: number;
 }
+
+export type ScoreBreakdown = {
+  explicit_choice: boolean;
+  constraints_violated: boolean;
+  reasons: string[];
+
+  program_alignment: number;
+  specialty_alignment: number;
+  identity_extracurricular: number;
+  specialty_mismatch: number;
+
+  [key: string]: number | boolean | string[];
+};

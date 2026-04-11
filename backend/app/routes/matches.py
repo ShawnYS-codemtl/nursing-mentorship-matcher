@@ -106,13 +106,14 @@ def override_match():
             return jsonify({"error": "Mentor is at full capacity"}), 400
 
         score, breakdown = calculate_match_score(mentor, mentee)
+        breakdown['reasons'].append("Manual override.")
 
         # --- Create new match ---
         new_match = Match(
             mentor_id=mentor_id,
             mentee_id=mentee_id,
             match_score=score,
-            match_reason={"manual_override": True},
+            match_reason=breakdown,
             match_type="manual_override",
             is_manual_override=True,
             is_locked=False

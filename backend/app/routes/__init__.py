@@ -12,6 +12,7 @@ def create_app():
     from app.routes.stats import stats_bp
     from app.routes.unmatched import unmatched_bp
     from app.routes.export import export_bp
+    from app.routes.score_preview import match_score_bp
 
     app.register_blueprint(matches_bp)
     app.register_blueprint(matching_bp)
@@ -19,6 +20,7 @@ def create_app():
     app.register_blueprint(stats_bp)
     app.register_blueprint(unmatched_bp)
     app.register_blueprint(export_bp)
+    app.register_blueprint(match_score_bp)
     
     print(app.url_map)
 

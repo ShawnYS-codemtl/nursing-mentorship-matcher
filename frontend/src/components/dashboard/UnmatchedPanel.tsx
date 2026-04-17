@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import { useUnmatched } from "../../hooks/useUnmatched";
-import type { DetailedMentee, AvailableMentor } from "../../types";
+import { useSelectionController } from "../../hooks/useSelectionController";
 import { overrideMatch } from "../../services/api";
 import { useMatchScore } from "../../hooks/useMatchScore";
 
@@ -12,8 +12,17 @@ interface Props {
 const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
   const { mentees, mentors, loading, error } = useUnmatched(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedMentee, setSelectedMentee] = useState<DetailedMentee | null>(null);
-  const [selectedMentor, setSelectedMentor] = useState<AvailableMentor | null>(null);
+  const {
+    selectedMentee,
+    selectedMentor,
+    sidePanelMode,
+    openMenteePicker,
+    openMentorPicker,
+    closeSidePanel,
+    selectMentee,
+    selectMentor,
+    resetSelection,
+  } = useSelectionController();
   const { score, breakdown, loading: scoreLoading } = useMatchScore(selectedMentee, selectedMentor);
 
   const handleAssign = async () => {
@@ -26,8 +35,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
       });
 
       // ✅ Clear selections AFTER success
-      setSelectedMentee(null);
-      setSelectedMentor(null);
+      resetSelection();
 
       onRefresh(); // 🔑 refresh all panels
     } catch (err) {
@@ -54,9 +62,12 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
 
       {!collapsed && 
       <>
+        {selectedMentee && selectedMentor && <p><strong>Score:</strong> {score}</p>}
         <div className="grid grid-cols-3 gap-4 mb-4">
           {/* Mentee panel */}
-          <div className="bg-white p-4 shadow rounded min-h-[150px] bg-blue-100">
+          <div className="bg-white p-4 shadow rounded min-h-[150px] bg-blue-100"
+               onClick={openMenteePicker}
+          >
             <h3 className="font-bold mb-2">Selected Mentee</h3>
 
             {selectedMentee ? (
@@ -77,7 +88,8 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
           </div>
 
           {/* Mentor panel */}
-          <div className="bg-white p-4 shadow rounded min-h-[150px] bg-green-100">
+          <div className="bg-white p-4 shadow rounded min-h-[150px] bg-green-100"
+          onClick={openMentorPicker}>
             <h3 className="font-bold mb-2">Selected Mentor</h3>
 
             {selectedMentor ? (
@@ -97,9 +109,69 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
               <p className="text-gray-400">Select a mentor</p>
             )}
           </div>
+          <div className="bg-white p-4 shadow rounded min-h-[150px]">
+            {sidePanelMode === "none" && (
+              <p className="text-gray-400">Click a panel to browse options</p>
+            )}
+            {sidePanelMode === "mentee-picker" && (
+            <>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold">Select Mentee</h3>
+                <button
+                  onClick={closeSidePanel}
+                  className="text-sm text-red-500"
+                >
+                  Close
+                </button>
+              </div>
+
+              {mentees.map((m) => (
+                <div
+                  key={m.id}
+                  onClick={() => {
+                    selectMentee(m);
+                    // setSidePanelMode("none");
+                  }}
+                  className={`p-2 rounded cursor-pointer ${
+                  selectedMentee?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"}`}
+                >
+                  {m.name} ({m.program})
+                </div>
+              ))}
+            </>
+            )}
+            {sidePanelMode === "mentor-picker" && (
+            <>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold">Select Mentor</h3>
+                <button
+                  onClick={closeSidePanel}
+                  className="text-sm text-red-500"
+                >
+                  Close
+                </button>
+              </div>
+
+              {mentors.map((m) => (
+                <div
+                  key={m.id}
+                  onClick={() => {
+                    selectMentor(m);
+                    // setSidePanelMode("none");
+                  }}
+                  className={`p-2 rounded cursor-pointer ${
+                  selectedMentor?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"}`}
+                >
+                  {m.name} ({m.program}) - Capacity: {m.remaining_capacity}
+                </div>
+              ))}
+            </>
+            )}
+          </div>
+
         </div>
         {selectedMentee && selectedMentor && (
-          <div className="mt-2 p-2 bg-yellow-100 rounded">
+          <div className="my-2 p-2 bg-yellow-100 rounded">
             {scoreLoading ? (
               <p>Calculating score...</p>
             ) : (
@@ -131,7 +203,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
           {mentees.map((m) => (
             <div
               key={m.id}
-              onClick={() => setSelectedMentee(m)}
+              onClick={() => selectMentee(m)}
               className={`cursor-pointer p-2 rounded ${
                 selectedMentee?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"
               }`}
@@ -145,7 +217,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
           {mentors.map((m) => (
             <div
               key={m.id}
-              onClick={() => setSelectedMentor(m)}
+              onClick={() => selectMentor(m)}
               className={`cursor-pointer p-2 rounded ${
                 selectedMentor?.id === m.id ? "bg-green-100" : "hover:bg-gray-100"
               }`}

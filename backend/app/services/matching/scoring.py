@@ -76,7 +76,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
         )
         if debug:
             logger.debug(f"  ✗ Year constraint failed: {mentor_year} <= {mentee_year}")
-        return 0, score_breakdown
+        # return 0, score_breakdown
     
     # CONSTRAINT 2: Language compatibility
     mentor_languages = set(
@@ -99,7 +99,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
             )
             if debug:
                 logger.debug(f"  ✗ Language constraint failed: no shared languages")
-            return 0, score_breakdown
+            # return 0, score_breakdown
 
     if debug:
         logger.debug(f"  ✓ All constraints passed")
@@ -183,12 +183,6 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
         )
         if debug:
             logger.debug(f"  - Specialty mismatch: -5 pts")
-            
-    # elif not mentee_specialties:
-    #     # Mentee hasn't decided yet
-    #     score_breakdown['reasons'].append("Mentee still exploring specialties")
-    #     if debug:
-    #         logger.debug(f"  ~ Mentee still exploring")
     
     # COMPONENT 4: Identity & Extracurricular
     identity_score = 0
@@ -291,5 +285,8 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
     
     if debug:
         logger.debug(f"  TOTAL SCORE: {total_score}")
+    
+    if score_breakdown['constraints_violated'] == True:
+        return 0, score_breakdown
     
     return total_score, score_breakdown

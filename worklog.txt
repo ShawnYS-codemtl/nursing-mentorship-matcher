@@ -143,3 +143,78 @@ Mon, Mar 30
 - created a new virtual environment, imported dependencies
 - create vite project -> frontend folder
 - test API call -> need to run the backend and the frontend separately
+- first implementation of dashboard page (minimal)
+- installed tailwindcss -> use v3 (v4 is too complicated to use)
+
+Wed, Apr 1
+- defined types.ts for interface definitions
+- fetch endpoints in api.ts
+- hooks (calls fetch and stores state)
+- extended on Matches table 
+    - expandable row for detailed info
+    - cleaner look
+    - button to close/open table
+- things to work on:
+    - loading stats
+    - loading unmatched mentees and available mentors
+    - button functionality for POST endpoints
+    - sorting 
+
+Sat, Apr 4
+- implemented stats panel
+- implemented unmatched mentee & available mentor view
+- need to: 
+    - make endpoint for manual matching 
+    - button functionality for POST endpoints (import, run-matching, export)
+    - sorting
+    - unmatching? 
+    - add more fields in matches details
+    - locking matches
+    - flagging matches
+    - column matching configuration
+
+
+Sun, Apr 5
+- implemented import button
+    - needed to fetch POST endpoint with body {source: csv/googlesheets}
+        - in the api.ts -> need headers: method, headers, body
+        - pass the source when the function is called
+    - added dropdown to choose between csv or google sheets -> still need to set these from UI
+    - updated panels to use refreshKey props to fetch again after a POST abstraction
+- implemented run-matching button
+- implemented export button
+    - res.blob() converts raw csv output into a downloadable file
+    - fetches and then creates download link 
+
+- ideas:
+    - for available mentors/umatched mentee -> expandable row like matches for easy viewing
+    - need to be able to import csv/google_sheets link directly into frontend
+
+Tue, Apr 7
+- implemented unmatching functionality
+- connected manual matching frontend to backend override endpoint
+- next: 
+    - need to confirm that run matching on re-runs is only using remaining mentors and mentees
+        -> implement locking matches
+    - change the explicit choice score from 100 to actual score 
+    - for available mentors/umatched mentee -> expandable row like matches for easy viewing
+    - need to be able to import csv/google_sheets link directly into frontend
+    - column matching configuration
+    - sorting
+    - column matching configuration
+
+Fri, Apr 10
+- implemented locking matches for re-running matches
+- updated the score to be reflected even on explicit matches
+- added score preview for manual matches, also added score breakdown
+- next: 
+    - add a panel for the manual matching for easier browsing of mentor/mentee
+
+Fri, Apr 17
+- added panel for manual matching for easier browsing
+- updated scoring to continue weight calculation even if constraint is not met
+- need:
+    - need to be able to import csv/google_sheets link directly into frontend
+    - column matching configuration
+    - sorting
+    - column matching configuration

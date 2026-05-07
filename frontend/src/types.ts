@@ -12,6 +12,8 @@ export interface Person {
   id: number;
   name: string;
   email: string;
+  year: number;
+  program: string;
 }
 
 export interface DetailedMentee {

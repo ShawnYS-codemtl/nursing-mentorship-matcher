@@ -29,12 +29,16 @@ def get_matches():
                 "mentor": {
                     "id": match.mentor.id,
                     "name": match.mentor.name,
-                    "email": match.mentor.email
+                    "email": match.mentor.email,
+                    "year": match.mentor.year_in_program,
+                    "program": match.mentor.program
                 },
                 "mentee": {
                     "id": match.mentee.id,
                     "name": match.mentee.name,
-                    "email": match.mentee.email
+                    "email": match.mentee.email,
+                    "year": match.mentee.year_in_program,
+                    "program": match.mentee.program
                 },
                 "score": match.match_score,
                 "match_type": match.match_type,

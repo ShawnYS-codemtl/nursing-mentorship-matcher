@@ -62,6 +62,8 @@ const MatchRow: React.FC<Props> = ({ match, onUnmatch, onToggle }) => {
                 <h3 className="font-bold mb-2">Mentor</h3>
                 <p><strong>Name:</strong> {match.mentor.name}</p>
                 <p><strong>Email:</strong> {match.mentor.email}</p>
+                <p><strong>Year:</strong> {match.mentor.year}</p>
+                <p><strong>Program:</strong> {match.mentor.program}</p>
               </div>
 
               {/* Mentee details */}
@@ -69,6 +71,8 @@ const MatchRow: React.FC<Props> = ({ match, onUnmatch, onToggle }) => {
                 <h3 className="font-bold mb-2">Mentee</h3>
                 <p><strong>Name:</strong> {match.mentee.name}</p>
                 <p><strong>Email:</strong> {match.mentee.email}</p>
+                <p><strong>Year:</strong> {match.mentee.year}</p>
+                <p><strong>Program:</strong> {match.mentee.program}</p>
               </div>
 
               {/* Match breakdown */}

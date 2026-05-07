@@ -120,3 +120,13 @@ export type ScoreBreakdown = {
 
   [key: string]: number | boolean | string[];
 };
+
+export type SortDirection = "asc" | "desc";
+
+export type MatchSortKey =
+  | "id"
+  | "mentor_name"
+  | "mentee_name"
+  | "score"
+  | "match_type"
+  | "is_locked";

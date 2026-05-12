@@ -1,49 +1,44 @@
 from flask import Blueprint, request, jsonify
 from app.services.importing.import_service import import_data
-from app.services.data_sources.google_sheets import GoogleSheetsDataSource
+# from app.services.data_sources.google_sheets import GoogleSheetsDataSource
 from app.services.data_sources.csv_source import CSVDataSource
+import csv
+import traceback
+import io
 
 import_bp = Blueprint("import", __name__)
 
 @import_bp.route("/import", methods=["POST"])
 def import_endpoint():
     try:
-        data = request.get_json(silent=True) or {}
-        source = (data.get("source") or request.form.get("source") or "").lower()
+        mentor_file = request.files.get("mentor_file")
+        mentee_file = request.files.get("mentee_file")
 
-        print(f"Import source: {source}")
+        if mentor_file and mentee_file: 
 
-        if source == "google_sheets":
-            data_source = GoogleSheetsDataSource()
-            result = import_data(data_source.get_mentor_rows, data_source.get_mentee_rows)
+            mentor_text = io.TextIOWrapper(
+                mentor_file.stream,
+                encoding="utf-8"
+            )
 
-        # uploading csv files from frontend
-        # fallback to csv files in dev mode
-        elif source == "csv":
+            mentee_text = io.TextIOWrapper(
+                mentee_file.stream,
+                encoding="utf-8"
+            )
 
-            mentor_file = request.files.get("mentor_file")
-            mentee_file = request.files.get("mentee_file")
-            if mentor_file and mentee_file: 
+            mentor_rows = list(csv.DictReader(mentor_text))
+            mentee_rows = list(csv.DictReader(mentee_text))
 
-                if not mentor_file or not mentee_file:
-                    return jsonify({"error": "CSV files required"}), 400
+            # Wrap into lambdas to match interface
+            result = import_data(
+                lambda: mentor_rows,
+                lambda: mentee_rows
+            )
 
-                import csv
-
-                mentor_rows = list(csv.DictReader(mentor_file.stream))
-                mentee_rows = list(csv.DictReader(mentee_file.stream))
-
-                # Wrap into lambdas to match interface
-                result = import_data(
-                    lambda: mentor_rows,
-                    lambda: mentee_rows
-                )
-            else:
-                data_source = CSVDataSource('app/data/mentors.csv', 'app/data/mentees.csv')
-                result = import_data(data_source.get_mentor_rows, data_source.get_mentee_rows)
-
-        else:
-            return jsonify({"error": "Invalid source"}), 400
+        else: # send error or maybe backup data
+            return jsonify({"error": "CSV files required"}), 400
+            # data_source = CSVDataSource('app/data/mentors.csv', 'app/data/mentees.csv')
+            # result = import_data(data_source.get_mentor_rows, data_source.get_mentee_rows)
 
         return jsonify({
             "status": "success",
@@ -51,4 +46,8 @@ def import_endpoint():
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        traceback.print_exc()
+
+        return jsonify({
+            "error": str(e)
+        }), 500

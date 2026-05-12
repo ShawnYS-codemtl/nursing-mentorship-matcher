@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { importData, runMatching, exportData } from "../../services/api";
-import type { ImportSource } from "../../types";
+import { uploadCsvFiles, runMatching, exportData } from "../../services/api";
+// import type { ImportSource } from "../../types";
 
 interface Props {
   onRefresh: () => void;
@@ -8,7 +8,10 @@ interface Props {
 
 const ControlPanel: React.FC<Props> = ({onRefresh}) => {
   const [loading, setLoading] = useState<string | null>(null);
-  const [source, setSource] = useState<ImportSource>("csv");
+  // const [source, setSource] = useState<ImportSource>("csv");
+  const [mentorFile, setMentorFile] = useState<File | null>(null);
+  const [menteeFile, setMenteeFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleAction = async (action: () => Promise<void>, label: string) => {
     try {
@@ -25,23 +28,78 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
     }
   };
 
+  const handleCsvUpload = async () => {
+    if (!mentorFile || !menteeFile) {
+      alert("Please select both CSV files");
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      const formData = new FormData();
+
+      formData.append("mentor_file", mentorFile);
+      formData.append("mentee_file", menteeFile);
+
+      await uploadCsvFiles(formData);
+
+      onRefresh();
+
+      alert("CSV import successful");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to import CSVs");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="control-panel flex gap-2">
-      <select
-        value={source}
-        onChange={(e) => setSource(e.target.value as ImportSource)}
-        className="border px-2 py-1"
-      >
-        <option value="csv">CSV</option>
-        <option value="google_sheets">Google Sheets</option>
-      </select>
+      <div className="flex flex-col gap-2">
+        <div>
+          <label className="block font-semibold mb-1">
+            Mentor CSV
+          </label>
+
+          <input
+            type="file"
+            accept=".csv"
+            onChange={(e) =>
+              setMentorFile(e.target.files?.[0] || null)
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-1">
+            Mentee CSV
+          </label>
+
+          <input
+            type="file"
+            accept=".csv"
+            onChange={(e) =>
+              setMenteeFile(e.target.files?.[0] || null)
+            }
+          />
+        </div>
+      </div>
+
       <button
-        onClick={() => handleAction(
-          () => importData({source}), "Import")}
-        disabled={loading !== null}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
+        onClick={handleCsvUpload}
+        disabled={!mentorFile || !menteeFile || uploading}
+        className={`
+          px-4 py-2 rounded font-semibold transition-all duration-200
+          ${
+            !mentorFile || !menteeFile || uploading
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-70"
+              : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md cursor-pointer"
+          }
+        `}
       >
-        {loading === "Import" ? "Importing..." : "Import"}
+        {uploading ? "Uploading..." : "Import CSVs"}
       </button>
 
       <button

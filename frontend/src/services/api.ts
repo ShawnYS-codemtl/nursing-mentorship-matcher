@@ -1,4 +1,4 @@
-import type { Match, Stats, UnmatchedResponse, ImportRequest, OverrideMatchRequest, ScoreBreakdown } from "../types";
+import type { Match, Stats, UnmatchedResponse, OverrideMatchRequest, ScoreBreakdown } from "../types";
 
 const BASE_URL = "http://127.0.0.1:5000";
 
@@ -20,16 +20,13 @@ export const fetchUnmatched = async (): Promise<UnmatchedResponse> => {
   return res.json();
 };
 
-export const importData = async (body: ImportRequest): Promise<void> => {
+export const uploadCsvFiles = async (formData: FormData) => {
     const res = await fetch(`${BASE_URL}/import`, {
         method: "POST",
-        headers: {
-        "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+        body: formData,
     });
-    if (!res.ok) throw new Error("Import failed");
-    // return res.json();
+    if (!res.ok) throw new Error("CSV Upload failed");
+    return res.json()
 }
 
 export const runMatching = async () => {

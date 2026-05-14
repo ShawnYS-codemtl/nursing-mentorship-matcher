@@ -132,3 +132,16 @@ export type MatchSortKey =
   | "score"
   | "match_type"
   | "is_locked";
+
+export type ColumnMapping = Record<string, string>;
+
+export interface MappingPreview {
+  headers: string[];
+  mapping: ColumnMapping;
+  unmatched: string[];
+}
+
+export interface ImportPreviewResponse {
+  mentor: MappingPreview;
+  mentee: MappingPreview;
+}

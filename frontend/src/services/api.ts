@@ -21,7 +21,7 @@ export const fetchUnmatched = async (): Promise<UnmatchedResponse> => {
 };
 
 export const uploadCsvFiles = async (formData: FormData) => {
-    const res = await fetch(`${BASE_URL}/import`, {
+    const res = await fetch(`${BASE_URL}/import/preview`, {
         method: "POST",
         body: formData,
     });

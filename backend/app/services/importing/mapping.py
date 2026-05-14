@@ -1,5 +1,3 @@
-from aliases import MENTEE_ALIASES, MENTOR_ALIASES
-
 def normalize_column_name(name):
     return (
         name.strip()

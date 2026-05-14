@@ -21,13 +21,27 @@ export const fetchUnmatched = async (): Promise<UnmatchedResponse> => {
 };
 
 export const uploadCsvFiles = async (formData: FormData) => {
-    const res = await fetch(`${BASE_URL}/import/preview`, {
+  const res = await fetch(`${BASE_URL}/import/preview`, {
         method: "POST",
         body: formData,
     });
     if (!res.ok) throw new Error("CSV Upload failed");
     return res.json()
 }
+
+export const confirmImport = async (formData: FormData) => {
+  const res = await fetch(
+    `${BASE_URL}/import/confirm`, {
+      method: "POST",
+      body: formData,
+    });
+
+  if (!res.ok) {
+    throw new Error("Import failed");
+  }
+
+  return res.json();
+};
 
 export const runMatching = async () => {
   const res = await fetch(`${BASE_URL}/run-matching`, {

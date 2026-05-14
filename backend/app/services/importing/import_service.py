@@ -1,8 +1,8 @@
 from app.database import SessionLocal
 from app.models import Mentor, Mentee
 from app.services.parsing.form_processors import (
-    process_mentor_form_submission,
-    process_mentee_form_submission
+    build_mentee_from_row,
+    build_mentor_from_row
 )
 from app.services.importing.resolve import resolve_preferences
 
@@ -19,7 +19,7 @@ def import_data(get_mentor_rows, get_mentee_rows):
 
         # --- Insert mentees ---
         for row in mentee_rows:
-            mentee = process_mentee_form_submission(row)
+            mentee = build_mentee_from_row(row)
 
             existing = session.query(Mentee).filter_by(email=mentee.email).first()
             if not existing:
@@ -28,7 +28,7 @@ def import_data(get_mentor_rows, get_mentee_rows):
 
         # --- Insert mentors ---
         for row in mentor_rows:
-            mentor = process_mentor_form_submission(row)
+            mentor = build_mentor_from_row(row)
 
             existing = session.query(Mentor).filter_by(email=mentor.email).first()
             if not existing:

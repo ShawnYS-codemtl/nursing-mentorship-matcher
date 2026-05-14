@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { uploadCsvFiles, runMatching, exportData } from "../../services/api";
+import { uploadCsvFiles, runMatching, exportData, confirmImport } from "../../services/api";
 import type { ImportPreviewResponse } from "../../types";
 import ImportMappingTable from "./ImportMappingTable";
 import { MENTEE_FIELDS, MENTOR_FIELDS } from "../../constants/importFields";
@@ -9,13 +9,13 @@ interface Props {
 }
 
 const ControlPanel: React.FC<Props> = ({onRefresh}) => {
-  const [loading, setLoading] = useState<string | null>(null);
-  // const [source, setSource] = useState<ImportSource>("csv");
+  
   const [mentorFile, setMentorFile] = useState<File | null>(null);
   const [menteeFile, setMenteeFile] = useState<File | null>(null);
-  // const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ImportPreviewResponse | null>(null);
 
+  const [loading, setLoading] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
   const handleAction = async (action: () => Promise<void>, label: string) => {
@@ -32,33 +32,6 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
       setLoading(null);
     }
   };
-
-  // const handleCsvUpload = async () => {
-  //   if (!mentorFile || !menteeFile) {
-  //     alert("Please select both CSV files");
-  //     return;
-  //   }
-
-  //   try {
-  //     setUploading(true);
-
-  //     const formData = new FormData();
-
-  //     formData.append("mentor_file", mentorFile);
-  //     formData.append("mentee_file", menteeFile);
-
-  //     await uploadCsvFiles(formData);
-
-  //     onRefresh();
-
-  //     alert("CSV import successful");
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Failed to import CSVs");
-  //   } finally {
-  //     setUploading(false);
-  //   }
-  // };
 
   const handlePreviewUpload = async () => {
     if (!mentorFile || !menteeFile) return;
@@ -80,6 +53,60 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
       alert("Failed to preview CSVs");
     } finally {
       setLoadingPreview(false);
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    if (
+      !mentorFile ||
+      !menteeFile ||
+      !preview
+    ) {
+      return;
+    }
+
+    try {
+      setImporting(true);
+
+      const formData = new FormData();
+
+      formData.append(
+        "mentor_file",
+        mentorFile
+      );
+
+      formData.append(
+        "mentee_file",
+        menteeFile
+      );
+
+      formData.append(
+        "mentor_mapping",
+        JSON.stringify(
+          preview.mentor.mapping
+        )
+      );
+
+      formData.append(
+        "mentee_mapping",
+        JSON.stringify(
+          preview.mentee.mapping
+        )
+      );
+
+      await confirmImport(formData);
+      
+      onRefresh();
+
+      alert("Import successful");
+
+      setPreview(null);
+
+    } catch (err) {
+      console.error(err);
+      alert("Import failed");
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -186,6 +213,26 @@ const ControlPanel: React.FC<Props> = ({onRefresh}) => {
                 });
               }}
             />
+          </div>
+        )}
+        {preview && (
+          <div className="mt-4">
+            <button
+              onClick={handleConfirmImport}
+              disabled={importing}
+              className={`
+                px-4 py-2 rounded font-semibold
+                ${
+                  importing
+                    ? "bg-gray-300 text-gray-500"
+                    : "bg-green-600 text-white hover:bg-green-700"
+                }
+              `}
+            >
+              {importing
+                ? "Importing..."
+                : "Confirm Import"}
+            </button>
           </div>
         )}
       </div>

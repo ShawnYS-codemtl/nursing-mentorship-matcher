@@ -135,7 +135,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
                   className={`p-2 rounded cursor-pointer ${
                   selectedMentee?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"}`}
                 >
-                  {m.name} ({m.program})
+                  {m.name} | {m.program} | Year {m.year_in_program}
                 </div>
               ))}
             </>
@@ -162,7 +162,7 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
                   className={`p-2 rounded cursor-pointer ${
                   selectedMentor?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"}`}
                 >
-                  {m.name} ({m.program}) - Capacity: {m.remaining_capacity}
+                  {m.name} | {m.program} | Capacity: {m.remaining_capacity} | Year {m.year_in_program}
                 </div>
               ))}
             </>

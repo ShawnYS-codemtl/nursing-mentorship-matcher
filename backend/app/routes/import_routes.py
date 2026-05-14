@@ -1,58 +1,16 @@
 from flask import Blueprint, request, jsonify
 from app.services.importing.import_service import import_data
-# from app.services.data_sources.google_sheets import GoogleSheetsDataSource
 from app.services.data_sources.csv_source import CSVDataSource
 from app.services.importing.mapping import detect_mapping
 from app.services.importing.aliases import MENTEE_ALIASES, MENTOR_ALIASES
+from app.services.importing.normalization import normalize_rows
+from app.services.importing.validation import validate_rows, REQUIRED_MENTEE_FIELDS, REQUIRED_MENTOR_FIELDS
 import csv
 import traceback
 import io
+import json
 
 import_bp = Blueprint("import", __name__)
-
-@import_bp.route("/import", methods=["POST"])
-def import_endpoint():
-    try:
-        mentor_file = request.files.get("mentor_file")
-        mentee_file = request.files.get("mentee_file")
-
-        if mentor_file and mentee_file: 
-
-            mentor_text = io.TextIOWrapper(
-                mentor_file.stream,
-                encoding="utf-8"
-            )
-
-            mentee_text = io.TextIOWrapper(
-                mentee_file.stream,
-                encoding="utf-8"
-            )
-
-            mentor_rows = list(csv.DictReader(mentor_text))
-            mentee_rows = list(csv.DictReader(mentee_text))
-
-            # Wrap into lambdas to match interface
-            result = import_data(
-                lambda: mentor_rows,
-                lambda: mentee_rows
-            )
-
-        else: # send error or maybe backup data
-            return jsonify({"error": "CSV files required"}), 400
-            # data_source = CSVDataSource('app/data/mentors.csv', 'app/data/mentees.csv')
-            # result = import_data(data_source.get_mentor_rows, data_source.get_mentee_rows)
-
-        return jsonify({
-            "status": "success",
-            "data": result
-        })
-
-    except Exception as e:
-        traceback.print_exc()
-
-        return jsonify({
-            "error": str(e)
-        }), 500
 
 @import_bp.route("/import/preview", methods=["POST"])
 def preview_import():
@@ -106,6 +64,107 @@ def preview_import():
             }
         })
     except Exception as e:
+        traceback.print_exc()
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+@import_bp.route("/import/confirm", methods=["POST"])
+def confirm_import():
+
+    try:
+        mentor_mapping = json.loads(
+            request.form["mentor_mapping"]
+        )
+
+        mentee_mapping = json.loads(
+            request.form["mentee_mapping"]
+        )
+
+        mentor_file = request.files.get("mentor_file")
+        mentee_file = request.files.get("mentee_file")
+
+        if not mentor_file or not mentee_file:
+            return jsonify({
+                "error": "Both CSV files are required"
+            }), 400
+
+        mentor_text = io.TextIOWrapper(
+            mentor_file.stream,
+            encoding="utf-8"
+        )
+
+        mentee_text = io.TextIOWrapper(
+            mentee_file.stream,
+            encoding="utf-8"
+        )
+
+        mentor_rows = list(
+            csv.DictReader(mentor_text)
+        )
+
+        mentee_rows = list(
+            csv.DictReader(mentee_text)
+        )
+
+        normalized_mentor_rows = normalize_rows(
+            mentor_rows,
+            mentor_mapping
+        )
+
+        normalized_mentee_rows = normalize_rows(
+            mentee_rows,
+            mentee_mapping
+        )
+
+        # =========================
+        # Validation
+        # =========================
+
+        mentor_errors = validate_rows(
+            normalized_mentor_rows,
+            REQUIRED_MENTOR_FIELDS
+        )
+
+        mentee_errors = validate_rows(
+            normalized_mentee_rows,
+            REQUIRED_MENTEE_FIELDS
+        )
+
+        if mentor_errors or mentee_errors:
+
+            return jsonify({
+                "error": "Validation failed",
+
+                "mentor_errors": mentor_errors,
+                "mentee_errors": mentee_errors
+            }), 400
+
+        # =========================
+        # Import
+        # =========================
+
+        result = import_data(
+            lambda: normalized_mentor_rows,
+            lambda: normalized_mentee_rows
+        )
+
+        return jsonify({
+            "status": "success",
+            "data": result,
+
+            "mentor_rows_imported": len(
+                normalized_mentor_rows
+            ),
+
+            "mentee_rows_imported": len(
+                normalized_mentee_rows
+            )
+        })
+
+    except Exception as e:
+
         traceback.print_exc()
 
         return jsonify({

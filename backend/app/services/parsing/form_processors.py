@@ -1,7 +1,5 @@
 from app.models import Mentor, Mentee
 import uuid
-from .column_map import COLUMN_MAP
-
 
 # Year mapping
 YEAR_MAPPING = {
@@ -25,135 +23,246 @@ def parse_checkbox_field(raw_value, normalize=False):
     
     return values
 
-def process_mentor_form_submission(row: dict) -> Mentor:
-    """
-    Convert Google Form row into Mentor database object.
-    
-    Args:
-        row: Dict from Google Sheets with form responses
-    
-    Returns:
-        Mentor object ready for database insertion
-    """
-    
+def build_mentor_from_row(row: dict) -> Mentor:
+
     mentor = Mentor()
-    mentor.name = row.get(COLUMN_MAP["name"], "").strip()
-    mentor.email = row.get(COLUMN_MAP["email"], "").strip().lower()
-    mentor.form_id = row.get('Timestamp', str(uuid.uuid4()))
-    
-    # Year in program (dropdown returns full text, map to int)
-    mentor.year_in_program = YEAR_MAPPING.get(
-        row[COLUMN_MAP["academic_year"]],
-        0
+
+    mentor.name = row.get("name", "").strip()
+
+    mentor.email = (
+        row.get("email", "")
+        .strip()
+        .lower()
     )
-    
+
+    mentor.form_id = str(uuid.uuid4())
+
+    # =========================
+    # Year
+    # =========================
+
+    raw_year = row.get(
+        "year_in_program",
+        ""
+    ).strip()
+
+    mentor.year_in_program = (
+        YEAR_MAPPING.get(raw_year, 0)
+    )
+
+    # =========================
     # Program
-    mentor.program = row.get(COLUMN_MAP["program"], "").strip()
-    
-    # Specialties (checkboxes come as comma-separated string from Google Forms)
-    mentor.specialties = parse_checkbox_field(
-        row.get(COLUMN_MAP["specialties"], ''), 
-        normalize=True
+    # =========================
+
+    mentor.program = (
+        row.get("program", "")
+        .strip()
     )
-    
-    # Languages (checkboxes)
-    mentor.languages = parse_checkbox_field(
-        row.get(COLUMN_MAP["languages"], 'English')
+
+    # =========================
+    # Specialties
+    # =========================
+
+    mentor.specialties = (
+        parse_checkbox_field(
+            row.get("specialties", ""),
+            normalize=True
+        )
     )
-    
-    # Extracurriculars (checkboxes)
-    mentor.extracurricular_interests = parse_checkbox_field(
-        row.get(COLUMN_MAP["extracurriculars"], ''),
-        normalize=True
+
+    # =========================
+    # Languages
+    # =========================
+
+    mentor.languages = (
+        parse_checkbox_field(
+            row.get("languages", "English")
+        )
     )
-    
-    # Identity factors (checkboxes)
-    mentor.race_ethnicity = parse_checkbox_field(
-        row.get(COLUMN_MAP["ethnicity"], ''),
-        normalize=True
+
+    # =========================
+    # Extracurriculars
+    # =========================
+
+    mentor.extracurricular_interests = (
+        parse_checkbox_field(
+            row.get(
+                "extracurricular_interests",
+                ""
+            ),
+            normalize=True
+        )
     )
-    
-    # LGBTQ+ status (multiple choice)
-    lgbtq_raw = row.get(COLUMN_MAP["lgbtq"], 'Prefer not to answer')
-    mentor.lgbtq_status = normalize_option(lgbtq_raw)
-    
-    # Max mentees (multiple choice to int)
-    max_mentees_raw = str(row.get(COLUMN_MAP["nb_mentees"], "1")).strip()
-    if max_mentees_raw.lower() == "no preference":
-        mentor.max_mentees = 4  # using 4 as no preference
+
+    # =========================
+    # Identity
+    # =========================
+
+    mentor.race_ethnicity = (
+        parse_checkbox_field(
+            row.get(
+                "race_ethnicity",
+                ""
+            ),
+            normalize=True
+        )
+    )
+
+    # =========================
+    # LGBTQ
+    # =========================
+
+    lgbtq_raw = row.get(
+        "lgbtq_status",
+        "Prefer not to answer"
+    )
+
+    mentor.lgbtq_status = (
+        normalize_option(lgbtq_raw)
+    )
+
+    # =========================
+    # Capacity
+    # =========================
+
+    max_mentees_raw = str(
+        row.get("max_mentees", "1")
+    ).strip()
+
+    if (
+        max_mentees_raw.lower()
+        == "no preference"
+    ):
+        mentor.max_mentees = 4
     else:
         mentor.max_mentees = int(max_mentees_raw)
-    
-    # Preferred mentees (long answer - parse names)
-    preferred_raw = row.get(COLUMN_MAP["specific_mentees"], '')
-    mentor.preferred_mentee_names = [
-        "_".join(name.strip().lower().split())
-        for name in preferred_raw.split(',')
+
+    # =========================
+    # Preferred mentees
+    # =========================
+
+    preferred_raw = row.get(
+        "preferred_mentees_names",
+        ""
+    )
+
+    mentor.preferred_mentees_names = [
+        "_".join(
+            name.strip().lower().split()
+        )
+        for name in preferred_raw.split(",")
         if name.strip()
     ]
 
     return mentor
 
+def build_mentee_from_row(row: dict) -> Mentee:
 
-def process_mentee_form_submission(row: dict) -> Mentee:
-    """
-    Convert Google Form row into Mentee database object.
-    
-    Args:
-        row: Dict from Google Sheets with form responses
-    
-    Returns:
-        Mentee object ready for database insertion
-    """
-    
     mentee = Mentee()
-    mentee.name = row.get(COLUMN_MAP["name"], "").strip()
-    mentee.email = row.get(COLUMN_MAP["email"], "").strip().lower()
-    mentee.form_id = row.get('Timestamp', str(uuid.uuid4()))
-    
-    # Year in program (dropdown returns full text, map to int)
-    mentee.year_in_program = YEAR_MAPPING.get(
-        row[COLUMN_MAP["academic_year"]],
-        0
+
+    mentee.name = row.get("name", "").strip()
+
+    mentee.email = (
+        row.get("email", "")
+        .strip()
+        .lower()
     )
-    
+
+    mentee.form_id = str(uuid.uuid4())
+
+    # =========================
+    # Year
+    # =========================
+
+    raw_year = row.get(
+        "year_in_program",
+        ""
+    ).strip()
+
+    mentee.year_in_program = (
+        YEAR_MAPPING.get(raw_year, 0)
+    )
+
+    # =========================
     # Program
-    mentee.program = row.get(COLUMN_MAP["program"], "").strip()
-    
-    # Specialties (checkboxes come as comma-separated string from Google Forms)
-    mentee.specialties = parse_checkbox_field(
-        row.get(COLUMN_MAP["specialties"], ''), 
-        normalize=True
+    # =========================
+
+    mentee.program = (
+        row.get("program", "")
+        .strip()
     )
-    
-    # Languages (checkboxes)
-    mentee.languages_needed = parse_checkbox_field(
-        row.get(COLUMN_MAP["languages"], 'English')
+
+    # =========================
+    # Specialties
+    # =========================
+
+    mentee.specialties = (
+        parse_checkbox_field(
+            row.get("specialties", ""),
+            normalize=True
+        )
     )
-    
-    # Extracurriculars (checkboxes)
-    mentee.extracurricular_interests = parse_checkbox_field(
-        row.get(COLUMN_MAP["extracurriculars"], ''),
-        normalize=True
+
+    # =========================
+    # Languages
+    # =========================
+
+    mentee.languages_needed = (
+        parse_checkbox_field(
+            row.get("languages_needed", "English")
+        )
     )
-    
-    # Identity factors (checkboxes)
-    mentee.race_ethnicity = parse_checkbox_field(
-        row.get(COLUMN_MAP["ethnicity"], ''),
-        normalize=True
+
+    # =========================
+    # Extracurriculars
+    # =========================
+
+    mentee.extracurricular_interests = (
+        parse_checkbox_field(
+            row.get(
+                "extracurricular_interests",
+                ""
+            ),
+            normalize=True
+        )
     )
-    
-    # LGBTQ+ status (multiple choice)
-    lgbtq_raw = row.get(COLUMN_MAP["lgbtq"], 'Prefer not to answer')
-    mentee.lgbtq_status = normalize_option(lgbtq_raw)
-    
-    
-    # Preferred mentor (long answer - parse names)
-    preferred = row.get(COLUMN_MAP["specific_mentor"], '').strip()
+
+    # =========================
+    # Identity
+    # =========================
+
+    mentee.race_ethnicity = (
+        parse_checkbox_field(
+            row.get(
+                "race_ethnicity",
+                ""
+            ),
+            normalize=True
+        )
+    )
+
+    # =========================
+    # LGBTQ
+    # =========================
+
+    lgbtq_raw = row.get(
+        "lgbtq_status",
+        "Prefer not to answer"
+    )
+
+    mentee.lgbtq_status = (
+        normalize_option(lgbtq_raw)
+    )
+
+    # =========================
+    # Preferred mentor
+    # =========================
+
+    preferred_raw = row.get("preferred_mentor_name", "")
 
     mentee.preferred_mentor_name = (
-        "_".join(preferred.lower().split())
-        if preferred else None
+        "_".join(preferred_raw.lower().split())
+        if preferred_raw else None
     )
-    
+
     return mentee

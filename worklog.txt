@@ -217,4 +217,40 @@ Fri, Apr 17
     - need to be able to import csv/google_sheets link directly into frontend
     - column matching configuration
     - sorting
-    - column matching configuration
+
+
+Thur, May 7
+- implemented sorting of matches table by column, asc and desc
+- updated match row description to include year and program for better understanding of match
+
+Mon, May 11
+- updated import functionality
+    - upload mentor and mentee csv files from frontend
+    - removed google sheets as an option for source
+    - updated button display for more clear usage
+
+Tue, May 12
+- split importing into two phases
+- Phase 1: CSV Preview 
+    - user uploads files. Backend -> parses headers, samples first rows, attempts alias matching
+    - frontend -> displays mappings, allows manual corrections
+- Phase 2: Confirm import
+    - frontend sends: uploaded file references, finalized mappings
+    - backend: normalizes rows, validates types, imports
+
+- services/importing/
+    - aliases.py: MENTOR_ALIASES & MENTEE_ALIASES for matching fields to csv columns
+    - schema.py: MENTOR_FIELDS & MENTEE_FIELDS define the canonical fields used in the matching
+    - mapping.py: detect_mapping(cols, aliases) -> returns matching and unmatched for the preview
+
+Wed, May 13
+- two endpoints: 
+    - 1. Preview/detect mapping: /import/preview
+    - 2. Confirm import
+-to do:
+    - in normalization.py -> validate by type
+    - make import section into a component
+    - make import section collapsable
+    - improve responsiveness of run matching
+    - reset button
+    - settings

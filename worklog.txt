@@ -255,3 +255,26 @@ Wed, May 13
     - improve UX of run matching
     - reset button
     - settings
+
+Fri, May 22
+
+reminders: 
+running the app:
+- backend % source venv/bin/activate
+- backend % python run.py
+- frontend % npm run dev
+
+resetting db:
+- python -m scripts.reset_db (runs as module from backend root)
+
+- updated validation.py
+- need to update normalization.py -> change the types of the raw csv
+- figure out if that changes stuff
+
+Sun, May 24
+- created CLAUDE.md with project overview, dev commands, and architecture docs
+- updated normalization.py: added YEAR_MAPPING, 8 type converter helpers (to_str, to_lower_str,
+  to_option_str, to_int, to_year_int, to_max_mentees, to_list, to_normalized_list),
+  FIELD_CONVERTERS dict, and updated normalize_rows() to apply converters
+- simplified form_processors.py: removed YEAR_MAPPING, parse_checkbox_field, normalize_option;
+  build_mentor_from_row and build_mentee_from_row now just read already-typed values from row dict

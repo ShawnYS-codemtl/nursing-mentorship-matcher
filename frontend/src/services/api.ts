@@ -36,11 +36,13 @@ export const confirmImport = async (formData: FormData) => {
       body: formData,
     });
 
+  const data = await res.json();
+
   if (!res.ok) {
-    throw new Error("Import failed");
+    throw new Error(JSON.stringify(data, null, 2));
   }
 
-  return res.json();
+  return data;
 };
 
 export const runMatching = async () => {

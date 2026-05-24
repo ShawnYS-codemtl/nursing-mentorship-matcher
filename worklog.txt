@@ -271,7 +271,7 @@ resetting db:
 - need to update normalization.py -> change the types of the raw csv
 - figure out if that changes stuff
 
-Sun, May 24
+Sat, May 24
 - created CLAUDE.md with project overview, dev commands, and architecture docs
 - updated normalization.py: added YEAR_MAPPING, 8 type converter helpers (to_str, to_lower_str,
   to_option_str, to_int, to_year_int, to_max_mentees, to_list, to_normalized_list),
@@ -295,3 +295,19 @@ Sun, May 24
     - backend: POST /reset-db endpoint (drop_all + create_all via SQLAlchemy, safe for live connection)
     - registered reset_bp in routes/__init__.py
     - frontend: resetDatabase() in api.ts, Reset DB button in ControlPanel with window.confirm guard
+
+Sun, May 25
+- reviewed and improved scoring algorithm (scoring.py):
+    - removed dead commented-out early return lines in constraint checks
+    - added potential_score to breakdown when constraints are violated, so admin can see
+      what a pair would score if eligible (used in manual matching score preview)
+    - replaced duplicated related_programs dict with _PROGRAM_CLUSTERS list + _programs_related()
+      helper at module level — adding a new program now requires one entry in one place
+    - increased specialty mismatch penalty from -5 to -10 for a more meaningful signal
+- updated frontend to display constraint violations in manual matching panel (UnmatchedPanel.tsx):
+    - red warning banner shows "Constraint violated — would score X/100 if eligible"
+    - score badge turns red when constraints are violated
+    - constraints_violated, potential_score, explicit_choice hidden from raw breakdown grid
+      (now handled specially in the UI)
+- added potential_score?: number to ScoreBreakdown type in types.ts
+- updated stale test assertions in test_matching_manual.py to match current algorithm

@@ -173,13 +173,25 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
                     <p className="text-sm text-gray-500">Calculating score...</p>
                   ) : (
                     <>
+                      {breakdown?.constraints_violated && (
+                        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded-md">
+                          <span className="text-red-500">⚠</span>
+                          <span className="text-sm text-red-700 font-medium">
+                            Constraint violated — would score{" "}
+                            <strong>{breakdown.potential_score ?? 0}/100</strong> if eligible
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-3 mb-2">
                         <span className="text-sm font-semibold text-gray-700">Match Score</span>
-                        <span className="text-2xl font-bold text-gray-900">{score}</span>
+                        <span className={`text-2xl font-bold ${breakdown?.constraints_violated ? "text-red-400" : "text-gray-900"}`}>
+                          {score}
+                        </span>
                       </div>
                       {breakdown && (() => {
+                        const HIDDEN_KEYS = new Set(["reasons", "constraints_violated", "potential_score", "explicit_choice"]);
                         const reasons: string[] = Array.isArray(breakdown.reasons) ? breakdown.reasons : [];
-                        const scoreFields = Object.entries(breakdown).filter(([k]) => k !== "reasons");
+                        const scoreFields = Object.entries(breakdown).filter(([k]) => !HIDDEN_KEYS.has(k));
                         return (
                           <>
                             <ul className="grid grid-cols-2 gap-x-6 gap-y-1 mb-3">

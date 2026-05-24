@@ -206,8 +206,7 @@ def test_explicit_choice_mentor():
     print("✓ TEST: Explicit Choice (Mentor)")
     print(f"  Score: {score}")
     print(f"  Breakdown: {breakdown}")
-    assert breakdown['explicit_choice'] == 40, f"Expected explicit choice 40, got {breakdown['explicit_choice']}"
-    assert "explicitly requested" in str(breakdown['reasons']).lower()
+    assert breakdown['explicit_choice'] == False, f"Expected explicit_choice False (handled externally), got {breakdown['explicit_choice']}"
     print("  PASSED\n")
 
 
@@ -227,7 +226,7 @@ def test_explicit_choice_mentee():
         max_mentees=1,
         preferred_mentee_names=[]
     )
-    
+
     mentee = Mentee(
         id=52,
         name="Sophie Chen",
@@ -241,13 +240,13 @@ def test_explicit_choice_mentee():
         extracurricular_interests=[],
         preferred_mentor_name=6  # Explicitly requested mentor ID 6
     )
-    
+
     score, breakdown = calculate_match_score(mentor, mentee, debug=True)
-    
+
     print("✓ TEST: Explicit Choice (Mentee)")
     print(f"  Score: {score}")
     print(f"  Breakdown: {breakdown}")
-    assert breakdown['explicit_choice'] == 40, f"Expected explicit choice 40, got {breakdown['explicit_choice']}"
+    assert breakdown['explicit_choice'] == False, f"Expected explicit_choice False (handled externally), got {breakdown['explicit_choice']}"
     print("  PASSED\n")
 
 
@@ -287,7 +286,7 @@ def test_program_alignment():
     print("✓ TEST: Program Alignment")
     print(f"  Score: {score}")
     print(f"  Program alignment score: {breakdown['program_alignment']}")
-    assert breakdown['program_alignment'] == 25, f"Expected program alignment 25, got {breakdown['program_alignment']}"
+    assert breakdown['program_alignment'] == 35, f"Expected program alignment 35, got {breakdown['program_alignment']}"
     print("  PASSED\n")
 
 
@@ -368,7 +367,7 @@ def test_specialty_mismatch():
     print("✓ TEST: Specialty Mismatch")
     print(f"  Score: {score}")
     print(f"  Specialty mismatch score: {breakdown['specialty_mismatch']}")
-    assert breakdown['specialty_mismatch'] == -5, f"Expected -5 penalty, got {breakdown['specialty_mismatch']}"
+    assert breakdown['specialty_mismatch'] == -10, f"Expected -10 penalty, got {breakdown['specialty_mismatch']}"
     print("  PASSED\n")
 
 
@@ -544,9 +543,9 @@ if __name__ == "__main__":
     # test_language_constraint_satisfied()
     # test_explicit_choice_mentor()
     # test_explicit_choice_mentee()
-    # test_program_alignment()
+    test_program_alignment()
     # test_specialty_alignment()
-    # test_specialty_mismatch()
+    test_specialty_mismatch()
     # test_identity_match_lgbtq()
     # test_identity_match_firstgen()
     # test_extracurricular_match()

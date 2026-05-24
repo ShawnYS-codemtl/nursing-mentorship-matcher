@@ -113,6 +113,7 @@ export interface OverrideMatchRequest {
 export type ScoreBreakdown = {
   explicit_choice: boolean;
   constraints_violated: boolean;
+  potential_score?: number;
   reasons: string[];
 
   program_alignment: number;
@@ -120,7 +121,7 @@ export type ScoreBreakdown = {
   identity_extracurricular: number;
   specialty_mismatch: number;
 
-  [key: string]: number | boolean | string[];
+  [key: string]: number | boolean | string[] | undefined;
 };
 
 export type SortDirection = "asc" | "desc";

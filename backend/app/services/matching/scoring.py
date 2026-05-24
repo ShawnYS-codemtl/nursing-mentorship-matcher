@@ -2,6 +2,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+_PROGRAM_CLUSTERS = [
+    {'bsc(n)', 'bni online', 'bni on campus'},
+    {
+        'msca in nursing (direct entry)',
+        'msca in advanced nursing (nurse entry)',
+        'msca in nurse practitioner',
+    },
+]
+
+def _programs_related(p1: str, p2: str) -> bool:
+    return any(p1 in cluster and p2 in cluster for cluster in _PROGRAM_CLUSTERS)
+
 def safe_get_list(value, default=None):
     """Safely convert value to list."""
     if value is None:
@@ -76,8 +88,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
         )
         if debug:
             logger.debug(f"  ✗ Year constraint failed: {mentor_year} <= {mentee_year}")
-        # return 0, score_breakdown
-    
+
     # CONSTRAINT 2: Language compatibility
     mentor_languages = set(
         lang.lower().strip() for lang in safe_get_list(mentor.languages, ['english'])
@@ -99,7 +110,6 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
             )
             if debug:
                 logger.debug(f"  ✗ Language constraint failed: no shared languages")
-            # return 0, score_breakdown
 
     if debug:
         logger.debug(f"  ✓ All constraints passed")
@@ -130,17 +140,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
         if debug:
             logger.debug(f"  + Program match: {weights['program']} pts")
     else:
-        # Partial credit for related programs
-        related_programs = {
-            'BSc(N)': ['BNI Online', 'BNI On Campus'],
-            'BNI Online': ['BSc(N)', 'BNI On Campus'],
-            'BNI On Campus': ['BNI Online', 'BSc(N)'],
-            'MScA in Nursing (Direct Entry)': ['MScA in Advanced Nursing (Nurse Entry)', 'MScA in Nurse Practitioner'],
-            'MScA in Advanced Nursing (Nurse Entry)': ['MScA in Nursing (Direct Entry)', 'MScA in Nurse Practitioner'],
-            'MScA in Nurse Practitioner': ['MScA in Nursing (Direct Entry)', 'MScA in Advanced Nursing (Nurse Entry)'],
-        }
-        
-        if mentee_program in related_programs.get(mentor_program, []):
+        if _programs_related(mentor_program, mentee_program):
             score_breakdown['program_alignment'] = weights['program'] * 0.5
             score_breakdown['reasons'].append(f"Related programs: {mentor.program} and {mentee.program}")
             if debug:
@@ -176,7 +176,7 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
             
     elif mentee_specialties and mentor_specialties:
         # Both have interests, but no overlap
-        score_breakdown['specialty_mismatch'] = -5
+        score_breakdown['specialty_mismatch'] = -10
         score_breakdown['reasons'].append(
             f"Specialty mismatch: mentor interested in {sorted(mentor_specialties)}, "
             f"mentee interested in {sorted(mentee_specialties)}"
@@ -282,11 +282,12 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
     total_score = max(0, min(total_score, 100))
     
     score_breakdown['reasons'] = format_reasons(score_breakdown['reasons'])
-    
+
     if debug:
         logger.debug(f"  TOTAL SCORE: {total_score}")
-    
-    if score_breakdown['constraints_violated'] == True:
+
+    if score_breakdown['constraints_violated']:
+        score_breakdown['potential_score'] = total_score
         return 0, score_breakdown
-    
+
     return total_score, score_breakdown

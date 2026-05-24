@@ -28,21 +28,31 @@ const ControlPanel: React.FC<Props> = ({ onRefresh }) => {
     <div className="control-panel flex flex-col gap-2">
       <ImportPanel onRefresh={onRefresh} />
 
-      <button
-        onClick={() => handleAction(runMatching, "Run Matching")}
-        disabled={loading !== null}
-        className="bg-green-500 text-white px-4 py-2 rounded"
-      >
-        {loading === "Run Matching" ? "Running..." : "Run Matching"}
-      </button>
+      <div className="border-t border-gray-200 pt-4 mt-2 flex gap-2">
+        <button
+          onClick={() => handleAction(runMatching, "Run Matching")}
+          disabled={loading !== null}
+          className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            loading !== null
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-emerald-600 text-white hover:bg-emerald-700"
+          }`}
+        >
+          {loading === "Run Matching" ? "Running..." : "Run Matching"}
+        </button>
 
-      <button
-        onClick={() => handleAction(exportData, "Export")}
-        disabled={loading !== null}
-        className="bg-gray-500 text-white px-4 py-2 rounded"
-      >
-        {loading === "Export" ? "Exporting..." : "Export"}
-      </button>
+        <button
+          onClick={() => handleAction(exportData, "Export")}
+          disabled={loading !== null}
+          className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${
+            loading !== null
+              ? "border-gray-200 text-gray-400 cursor-not-allowed"
+              : "border-gray-300 text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          {loading === "Export" ? "Exporting..." : "Export CSV"}
+        </button>
+      </div>
     </div>
   );
 };

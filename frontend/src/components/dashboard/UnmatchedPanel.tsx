@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { useUnmatched } from "../../hooks/useUnmatched";
 import { useSelectionController } from "../../hooks/useSelectionController";
 import { overrideMatch } from "../../services/api";
@@ -9,7 +9,7 @@ interface Props {
   onRefresh: () => void;
 }
 
-const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
+const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
   const { mentees, mentors, loading, error } = useUnmatched(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -27,208 +27,205 @@ const UnmatchedPanel: React.FC<Props> = ({refreshKey, onRefresh}) => {
 
   const handleAssign = async () => {
     if (!selectedMentee || !selectedMentor) return;
-
     try {
-      await overrideMatch({
-        mentor_id: selectedMentor.id,
-        mentee_id: selectedMentee.id,
-      });
-
-      // ✅ Clear selections AFTER success
+      await overrideMatch({ mentor_id: selectedMentor.id, mentee_id: selectedMentee.id });
       resetSelection();
-
-      onRefresh(); // 🔑 refresh all panels
+      onRefresh();
     } catch (err) {
       console.error(err);
       alert("Failed to assign match");
     }
   };
 
-  if (loading) return <p>Loading unmatched mentees...</p>;
-  if (error) return <p>Error loading unmatched mentees</p>;
+  if (loading) return <p className="text-sm text-gray-500">Loading unmatched mentees...</p>;
+  if (error) return <p className="text-sm text-red-500">Error loading unmatched mentees</p>;
 
   return (
     <section className="unmatched-panel mb-4">
-      <div className="flex items-center mb-2">
-        <button
-          onClick={() => setCollapsed((prev) => !prev)}
-          className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+      <button
+        onClick={() => setCollapsed((prev) => !prev)}
+        className="w-full flex items-center justify-between px-1 py-2 hover:bg-gray-100 rounded group mb-2"
+      >
+        <h2 className="text-lg font-semibold text-gray-800">
+          Manual Matching
+          {mentees.length > 0 && (
+            <span className="ml-2 text-sm font-normal text-gray-400">({mentees.length} unmatched)</span>
+          )}
+        </h2>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${collapsed ? "-rotate-90" : ""}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor"
         >
-          {collapsed ? "▶" : "▼"}
-        </button>
-        <h2 className="text-lg font-bold mx-2">Unmatched Mentees</h2>
-      </div>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
-
-      {!collapsed && 
-      <>
-        {selectedMentee && selectedMentor && <p><strong>Score:</strong> {score}</p>}
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          {/* Mentee panel */}
-          <div className="bg-white p-4 shadow rounded min-h-[150px] bg-blue-100"
-               onClick={openMenteePicker}
-          >
-            <h3 className="font-bold mb-2">Selected Mentee</h3>
-
-            {selectedMentee ? (
-              <>
-                <p><strong>{selectedMentee.name}</strong></p>
-                <p>{selectedMentee.email}</p>
-                <p>Program: {selectedMentee.program}</p>
-                <p>Year: {selectedMentee.year_in_program}</p>
-                <p>Specialties: {selectedMentee.specialties.join(", ")}</p>
-                <p>Interests: {selectedMentee.extracurricular_interests.join(", ")}</p>
-                <p>Languages: {selectedMentee.languages_needed.join(", ")}</p>
-                <p>LGBTQ: {selectedMentee.lgbtq_status}</p>
-                <p>Ethnicity: {selectedMentee.race_ethnicity}</p>
-              </>
-            ) : (
-              <p className="text-gray-400">Select a mentee</p>
-            )}
-          </div>
-
-          {/* Mentor panel */}
-          <div className="bg-white p-4 shadow rounded min-h-[150px] bg-green-100"
-          onClick={openMentorPicker}>
-            <h3 className="font-bold mb-2">Selected Mentor</h3>
-
-            {selectedMentor ? (
-              <>
-                <p><strong>{selectedMentor.name}</strong></p>
-                <p>{selectedMentor.email}</p>
-                <p>Program: {selectedMentor.program}</p>
-                <p>Year: {selectedMentor.year_in_program}</p>
-                <p>Specialties: {selectedMentor.specialties.join(", ")}</p>
-                <p>Interests: {selectedMentor.extracurricular_interests.join(", ")}</p>
-                <p>Languages: {selectedMentor.languages.join(", ")}</p>
-                <p>LGBTQ: {selectedMentor.lgbtq_status}</p>
-                <p>Ethnicity: {selectedMentor.race_ethnicity}</p>
-                <p>Capacity: {selectedMentor.remaining_capacity}</p>
-              </>
-            ) : (
-              <p className="text-gray-400">Select a mentor</p>
-            )}
-          </div>
-          <div className="bg-white p-4 shadow rounded min-h-[150px]">
-            {sidePanelMode === "none" && (
-              <p className="text-gray-400">Click a panel to browse options</p>
-            )}
-            {sidePanelMode === "mentee-picker" && (
+      {!collapsed && (
+        <>
+          {mentees.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4">All mentees have been matched.</p>
+          ) : (
             <>
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold">Select Mentee</h3>
-                <button
-                  onClick={closeSidePanel}
-                  className="text-sm text-red-500"
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {/* Mentee card */}
+                <div
+                  onClick={openMenteePicker}
+                  className={`bg-blue-50 border rounded-lg p-4 min-h-[120px] cursor-pointer transition-all hover:ring-2 hover:ring-blue-300 ${
+                    sidePanelMode === "mentee-picker" ? "ring-2 ring-blue-400" : "border-blue-200"
+                  }`}
                 >
-                  Close
-                </button>
+                  <h3 className="text-sm font-semibold text-blue-800 mb-2">Selected Mentee</h3>
+                  {selectedMentee ? (
+                    <div className="space-y-0.5 text-sm">
+                      <p className="font-medium text-gray-900">{selectedMentee.name}</p>
+                      <p className="text-gray-500">{selectedMentee.email}</p>
+                      <p className="text-gray-600">Program: {selectedMentee.program}</p>
+                      <p className="text-gray-600">Year: {selectedMentee.year_in_program}</p>
+                      <p className="text-gray-600">Specialties: {selectedMentee.specialties.join(", ")}</p>
+                      <p className="text-gray-600">Languages: {selectedMentee.languages_needed.join(", ")}</p>
+                    </div>
+                  ) : (
+                    <p className="text-blue-400 text-sm">Click to select a mentee</p>
+                  )}
+                </div>
+
+                {/* Mentor card */}
+                <div
+                  onClick={openMentorPicker}
+                  className={`bg-green-50 border rounded-lg p-4 min-h-[120px] cursor-pointer transition-all hover:ring-2 hover:ring-green-300 ${
+                    sidePanelMode === "mentor-picker" ? "ring-2 ring-green-400" : "border-green-200"
+                  }`}
+                >
+                  <h3 className="text-sm font-semibold text-green-800 mb-2">Selected Mentor</h3>
+                  {selectedMentor ? (
+                    <div className="space-y-0.5 text-sm">
+                      <p className="font-medium text-gray-900">{selectedMentor.name}</p>
+                      <p className="text-gray-500">{selectedMentor.email}</p>
+                      <p className="text-gray-600">Program: {selectedMentor.program}</p>
+                      <p className="text-gray-600">Year: {selectedMentor.year_in_program}</p>
+                      <p className="text-gray-600">Specialties: {selectedMentor.specialties.join(", ")}</p>
+                      <p className="text-gray-600">Capacity: {selectedMentor.remaining_capacity}</p>
+                    </div>
+                  ) : (
+                    <p className="text-green-500 text-sm">Click to select a mentor</p>
+                  )}
+                </div>
+
+                {/* Picker panel */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4 min-h-[120px] overflow-y-auto max-h-64">
+                  {sidePanelMode === "none" && (
+                    <p className="text-sm text-gray-400">Click a card to browse options</p>
+                  )}
+
+                  {sidePanelMode === "mentee-picker" && (
+                    <>
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-sm font-semibold text-gray-700">Select Mentee</h3>
+                        <button onClick={closeSidePanel} className="text-xs text-gray-400 hover:text-gray-600">
+                          Close
+                        </button>
+                      </div>
+                      {mentees.map((m) => (
+                        <div
+                          key={m.id}
+                          onClick={() => selectMentee(m)}
+                          className={`px-3 py-2 rounded text-sm cursor-pointer mb-1 ${
+                            selectedMentee?.id === m.id
+                              ? "bg-blue-100 text-blue-800 font-medium"
+                              : "hover:bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {m.name} — {m.program} · Year {m.year_in_program}
+                        </div>
+                      ))}
+                    </>
+                  )}
+
+                  {sidePanelMode === "mentor-picker" && (
+                    <>
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-sm font-semibold text-gray-700">Select Mentor</h3>
+                        <button onClick={closeSidePanel} className="text-xs text-gray-400 hover:text-gray-600">
+                          Close
+                        </button>
+                      </div>
+                      {mentors.map((m) => (
+                        <div
+                          key={m.id}
+                          onClick={() => selectMentor(m)}
+                          className={`px-3 py-2 rounded text-sm cursor-pointer mb-1 ${
+                            selectedMentor?.id === m.id
+                              ? "bg-green-100 text-green-800 font-medium"
+                              : "hover:bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {m.name} — {m.program} · Cap: {m.remaining_capacity} · Year {m.year_in_program}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
               </div>
 
-              {mentees.map((m) => (
-                <div
-                  key={m.id}
-                  onClick={() => {
-                    selectMentee(m);
-                    // setSidePanelMode("none");
-                  }}
-                  className={`p-2 rounded cursor-pointer ${
-                  selectedMentee?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"}`}
-                >
-                  {m.name} | {m.program} | Year {m.year_in_program}
+              {selectedMentee && selectedMentor && (
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  {scoreLoading ? (
+                    <p className="text-sm text-gray-500">Calculating score...</p>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-sm font-semibold text-gray-700">Match Score</span>
+                        <span className="text-2xl font-bold text-gray-900">{score}</span>
+                      </div>
+                      {breakdown && (() => {
+                        const reasons: string[] = Array.isArray(breakdown.reasons) ? breakdown.reasons : [];
+                        const scoreFields = Object.entries(breakdown).filter(([k]) => k !== "reasons");
+                        return (
+                          <>
+                            <ul className="grid grid-cols-2 gap-x-6 gap-y-1 mb-3">
+                              {scoreFields.map(([k, v]) => (
+                                <li key={k} className="flex justify-between text-sm">
+                                  <span className="text-gray-500">{k}</span>
+                                  <span className="font-medium text-gray-700">{String(v)}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            {reasons.length > 0 && (
+                              <div className="border-t border-yellow-200 pt-3">
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Reasons</p>
+                                <ul className="space-y-1">
+                                  {reasons.map((r, i) => (
+                                    <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                                      <span className="text-yellow-400 mt-0.5">•</span>
+                                      {r}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </>
+                  )}
                 </div>
-              ))}
+              )}
+
+              <button
+                disabled={!selectedMentee || !selectedMentor}
+                onClick={handleAssign}
+                className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  selectedMentee && selectedMentor
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Match Selected Pair
+              </button>
             </>
-            )}
-            {sidePanelMode === "mentor-picker" && (
-            <>
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold">Select Mentor</h3>
-                <button
-                  onClick={closeSidePanel}
-                  className="text-sm text-red-500"
-                >
-                  Close
-                </button>
-              </div>
-
-              {mentors.map((m) => (
-                <div
-                  key={m.id}
-                  onClick={() => {
-                    selectMentor(m);
-                    // setSidePanelMode("none");
-                  }}
-                  className={`p-2 rounded cursor-pointer ${
-                  selectedMentor?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"}`}
-                >
-                  {m.name} | {m.program} | Capacity: {m.remaining_capacity} | Year {m.year_in_program}
-                </div>
-              ))}
-            </>
-            )}
-          </div>
-
-        </div>
-        {selectedMentee && selectedMentor && (
-          <div className="my-2 p-2 bg-yellow-100 rounded">
-            {scoreLoading ? (
-              <p>Calculating score...</p>
-            ) : (
-              <>
-                <p><strong>Score:</strong> {score}</p>
-
-                {breakdown && (
-                  <ul className="text-sm">
-                    {Object.entries(breakdown).map(([k, v]) => (
-                      <li key={k}>{k}: {String(v)}</li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        <button
-            disabled={!selectedMentee || !selectedMentor}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            onClick={handleAssign}
-          >
-            Match Selected Pair
-        </button>
-
-        <div>
-          <h2 className="text-lg font-bold mt-4 mb-2">Available Mentees</h2>
-          {mentees.map((m) => (
-            <div
-              key={m.id}
-              onClick={() => selectMentee(m)}
-              className={`cursor-pointer p-2 rounded ${
-                selectedMentee?.id === m.id ? "bg-blue-100" : "hover:bg-gray-100"
-              }`}
-            >
-              {m.name} ({m.program}) - Year: {m.year_in_program}
-            </div>
-          ))}
-
-          <h2 className="text-lg font-bold mt-4 mb-2">Available Mentors</h2>
-
-          {mentors.map((m) => (
-            <div
-              key={m.id}
-              onClick={() => selectMentor(m)}
-              className={`cursor-pointer p-2 rounded ${
-                selectedMentor?.id === m.id ? "bg-green-100" : "hover:bg-gray-100"
-              }`}
-            >
-              {m.name} ({m.program}) - Year: {m.year_in_program}
-            </div>
-          ))}
-        </div>
-      </>
-      }
-      
+          )}
+        </>
+      )}
     </section>
   );
 };

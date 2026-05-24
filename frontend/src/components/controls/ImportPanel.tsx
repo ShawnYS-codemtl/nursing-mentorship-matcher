@@ -58,15 +58,18 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
 
   return (
     <section className="import-panel mb-2">
-      <div className="flex items-center mb-2">
-        <button
-          onClick={() => setCollapsed((prev) => !prev)}
-          className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+      <button
+        onClick={() => setCollapsed((prev) => !prev)}
+        className="w-full flex items-center justify-between px-1 py-2 hover:bg-gray-100 rounded group mb-2"
+      >
+        <h2 className="text-lg font-semibold text-gray-800">Import CSV Files</h2>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${collapsed ? "-rotate-90" : ""}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor"
         >
-          {collapsed ? "▶" : "▼"}
-        </button>
-        <h2 className="text-lg font-bold mx-2">Import CSV Files</h2>
-      </div>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
       {!collapsed && (
         <div className="border rounded p-4 bg-gray-50">

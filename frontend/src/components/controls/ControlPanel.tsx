@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { runMatching, exportData } from "../../services/api";
+import { runMatching, exportData, resetDatabase } from "../../services/api";
 import ImportPanel from "./ImportPanel";
 
 interface Props {
@@ -19,6 +19,20 @@ const ControlPanel: React.FC<Props> = ({ onRefresh }) => {
     } catch (err) {
       console.error(err);
       alert(`${label} failed`);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!window.confirm("Reset the database? This will delete all mentors, mentees, and matches.")) return;
+    try {
+      setLoading("Reset");
+      await resetDatabase();
+      onRefresh();
+    } catch (err) {
+      console.error(err);
+      alert("Reset failed");
     } finally {
       setLoading(null);
     }
@@ -51,6 +65,18 @@ const ControlPanel: React.FC<Props> = ({ onRefresh }) => {
           }`}
         >
           {loading === "Export" ? "Exporting..." : "Export CSV"}
+        </button>
+
+        <button
+          onClick={handleReset}
+          disabled={loading !== null}
+          className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${
+            loading !== null
+              ? "border-gray-200 text-gray-400 cursor-not-allowed"
+              : "border-red-300 text-red-600 hover:bg-red-50"
+          }`}
+        >
+          {loading === "Reset" ? "Resetting..." : "Reset DB"}
         </button>
       </div>
     </div>

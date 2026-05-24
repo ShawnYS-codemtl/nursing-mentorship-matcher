@@ -114,6 +114,11 @@ export async function toggleMatchLock(id: number, is_locked: boolean) {
   return res.json();
 }
 
+export const resetDatabase = async (): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/reset-db`, { method: "POST" });
+  if (!res.ok) throw new Error("Reset failed");
+};
+
 export async function getMatchScore(payload: {
   mentor_id: number;
   mentee_id: number;

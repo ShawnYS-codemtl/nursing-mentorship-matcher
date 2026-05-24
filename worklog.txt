@@ -281,3 +281,17 @@ Sun, May 24
 - extracted import section from ControlPanel into its own ImportPanel component
 - ImportPanel is collapsible (▶/▼ toggle) matching the pattern of MatchesTable, StatsPanel, UnmatchedPanel
 - ControlPanel is now leaner: delegates import logic entirely to ImportPanel
+- dashboard UI polish pass across all components:
+    - DashboardLayout: bg-gray-50 background, p-6 padding
+    - Header: blue left-accent bar, McGill Nursing subtitle
+    - Sidebar: border-r separator, active/hover nav item states
+    - StatsPanel: large bold numbers with muted labels, 7-column stat card grid, SVG chevron collapse
+    - MatchesTable: white card wrapper, match count badge, SVG chevron collapse
+    - SortableHeader: fixed Tailwind JIT bug (dynamic w-[x%] class replaced with inline style), SVG sort arrow
+    - MatchRow: px-3 py-2 cell padding, lock as amber/gray pill badge, unmatch as outlined pill button
+    - MatchBreakdown: score rows with colored values, constraint/explicit badge pills, styled reasons list
+    - UnmatchedPanel: removed duplicate score display, removed redundant mentee/mentor lists, ring hover affordance on cards, empty state, full-width match button, reasons separated from score fields in breakdown
+- added reset database functionality:
+    - backend: POST /reset-db endpoint (drop_all + create_all via SQLAlchemy, safe for live connection)
+    - registered reset_bp in routes/__init__.py
+    - frontend: resetDatabase() in api.ts, Reset DB button in ControlPanel with window.confirm guard

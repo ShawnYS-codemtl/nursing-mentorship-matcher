@@ -249,7 +249,7 @@ Wed, May 13
     - 2. Confirm import (functionality done)
 -to do:
     - general testing
-    - in normalization.py -> validate by type
+    - in normalization.py -> validate by type 
     - make import section into a component
     - make import section collapsable
     - improve UX of run matching
@@ -278,3 +278,6 @@ Sun, May 24
   FIELD_CONVERTERS dict, and updated normalize_rows() to apply converters
 - simplified form_processors.py: removed YEAR_MAPPING, parse_checkbox_field, normalize_option;
   build_mentor_from_row and build_mentee_from_row now just read already-typed values from row dict
+- extracted import section from ControlPanel into its own ImportPanel component
+- ImportPanel is collapsible (▶/▼ toggle) matching the pattern of MatchesTable, StatsPanel, UnmatchedPanel
+- ControlPanel is now leaner: delegates import logic entirely to ImportPanel

@@ -98,7 +98,7 @@ Single-page app — `App.tsx` renders only `DashboardPage`.
 
 **State management:** No global store. `DashboardPage` owns a `refreshKey` integer that it increments to trigger re-fetches. All server state lives in custom hooks (`useMatches`, `useStats`, `useUnmatched`, `useMatchScore`).
 
-**API layer:** All fetch calls are in `services/api.ts` against `http://127.0.0.1:5000`.
+**API layer:** All fetch calls are in `services/api.ts`. The base URL is read from the `VITE_API_URL` environment variable at build time, falling back to `http://127.0.0.1:5000` for local development.
 
 **Import flow (two-step):**
 1. User picks mentor + mentee CSVs → `POST /import/preview` → backend returns detected mappings → `ImportMappingTable` renders editable dropdowns for each CSV column.
@@ -109,6 +109,45 @@ Single-page app — `App.tsx` renders only `DashboardPage`.
 - `DashboardPage` composes `StatsPanel`, `MatchesTable`, `UnmatchedPanel`, `ControlPanel`
 - `MatchesTable` → `MatchRow` (expandable) → `MatchBreakdown` (score breakdown detail)
 - `UnmatchedPanel` uses `useSelectionController` to coordinate mentor/mentee selection for manual override
+
+## Deployment
+
+### Production Stack
+
+| Layer | Service |
+|---|---|
+| Frontend | Vercel |
+| Backend | Render (free web service) |
+| Database | Supabase (PostgreSQL) |
+
+### Environment Variables
+
+**Render (backend):**
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | Supabase connection pooler URL (see below) |
+| `ALLOWED_ORIGINS` | Vercel frontend URL, e.g. `https://your-app.vercel.app` |
+| `FLASK_ENV` | `production` |
+
+**Vercel (frontend):**
+
+| Variable | Value |
+|---|---|
+| `VITE_API_URL` | Render backend URL, e.g. `https://your-app.onrender.com` |
+
+### Supabase + Render Networking Note
+
+Render's free tier is **IPv4-only**. Supabase's direct connection string (`db.<project>.supabase.co:5432`) resolves to an IPv6 address and will fail with `Network is unreachable`.
+
+**Always use the connection pooler URL** from Supabase:
+- Location: Project Settings → Database → Connection pooling → Transaction mode
+- Port: **6543** (not 5432)
+- Format: `postgresql://postgres.PROJECT_ID:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres`
+
+### Local Development
+
+When `DATABASE_URL` is not set, `database.py` automatically falls back to SQLite at `backend/app/data/database.db`. No environment variables needed for local dev.
 
 ## Key Data Conventions
 

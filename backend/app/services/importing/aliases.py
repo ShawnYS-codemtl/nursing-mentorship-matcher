@@ -1,4 +1,9 @@
 MENTOR_ALIASES = {
+    "preferred_mentees_names":[
+        "specific",
+        "preferred"
+    ],
+
     "name": [
         "name",
         "full_name",
@@ -12,23 +17,22 @@ MENTOR_ALIASES = {
         "mail"
     ],
 
-    "program": [
-        "program",
-        "program_of_study",
-        "degree"
-    ],
-
     "year_in_program": [
         "year_in_the_program",
         "academic_year",
         "current_year"
     ],
 
+    "program": [
+        "program",
+        "program_of_study",
+        "degree"
+    ],
+
     "specialties": [
         "specialties",
         "specialty",
         "clinical_interests",
-        "interests"
     ],
 
     "languages": [
@@ -45,22 +49,23 @@ MENTOR_ALIASES = {
         "extracurricular"
     ],
 
-    "race_ethnicity": [
-        "identify",
-        "ethnicity"
-    ],
-
     "lgbtq_status":[
         "lgbtq"
     ],
 
-    "preferred_mentees_names":[
-        "specific",
-        "preferred"
+    "race_ethnicity": [
+        "identify",
+        "ethnicity"
     ]
 }
 
 MENTEE_ALIASES = {
+    "preferred_mentor_name":[
+        "paired",
+        "specific",
+        "preferred",
+    ],
+
     "name": [
         "name",
         "full_name",
@@ -74,23 +79,26 @@ MENTEE_ALIASES = {
         "mail"
     ],
 
-    "program": [
-        "program",
-        "program_of_study",
-        "degree"
-    ],
-
     "year_in_program": [
         "year_in_the_program",
         "academic_year",
         "current_year"
     ],
 
+    "program": [
+        "program",
+        "program_of_study",
+        "degree"
+    ],
+
+    "extracurricular_interests": [
+        "extracurricular"
+    ],
+
     "specialties": [
         "specialties",
         "specialty",
-        "clinical_interests",
-        "interests"
+        "clinical_interests"
     ],
 
     "languages": [
@@ -98,23 +106,12 @@ MENTEE_ALIASES = {
         "language"
     ],
 
-    "extracurricular_interests": [
-        "extracurricular"
+    "lgbtq_status":[
+        "lgbtq"
     ],
 
     "race_ethnicity": [
         "identify",
         "ethnicity"
-    ],
-
-    "lgbtq_status":[
-        "lgbtq"
-    ],
-
-    "preferred_mentor_name":[
-        "paired",
-        "specific",
-        "prefer",
-        "preferred",
     ]
 }

@@ -318,3 +318,17 @@ Sun, May 25
 - updated DashboardLayout to accept activePage and onNavigate props and thread them to Sidebar
 - updated Sidebar with functional nav buttons (Dashboard / User Guide) and active state styling
 - updated DashboardPage to accept and forward onNavigate prop
+
+Mon, May 26
+- added sort controls to manual matching picker lists in UnmatchedPanel:
+    - Name / Program / Year buttons above mentee and mentor picker lists
+    - clicking the active sort field toggles asc ▲ / desc ▼ direction
+    - clicking a new field switches to it (resets to asc)
+    - mentee picker uses blue highlight; mentor picker uses green highlight
+    - independent sort state for each picker list
+- improved import mapping UX:
+    - duplicate system field highlighting: dropdowns turn red + ⚠ badge when two CSV columns
+      map to the same system field; summary line lists all duplicated fields below the table
+    - pre-flight duplicate check blocks Confirm Import and shows inline error without hitting the API
+    - replaced generic alert("Import failed") with an inline red error panel that surfaces
+      structured backend errors: missing required fields and invalid type errors with row numbers

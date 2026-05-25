@@ -22,6 +22,14 @@ const ImportMappingTable: React.FC<Props> = ({
   fields,
   onChange,
 }) => {
+  const fieldCounts = Object.values(mapping).reduce<Record<string, number>>((acc, v) => {
+    if (v && v !== "ignore") acc[v] = (acc[v] ?? 0) + 1;
+    return acc;
+  }, {});
+  const duplicateFields = new Set(
+    Object.entries(fieldCounts).filter(([, c]) => c > 1).map(([f]) => f)
+  );
+
   return (
     <div className="border rounded p-4 bg-white shadow">
       <h3 className="font-bold text-lg mb-4">
@@ -42,40 +50,59 @@ const ImportMappingTable: React.FC<Props> = ({
         </thead>
 
         <tbody>
-          {headers.map((header) => (
-            <tr
-              key={header}
-              className="border-t"
-            >
-              <td className="p-2">
-                {header}
-              </td>
+          {headers.map((header) => {
+            const currentValue = mapping[header] || "ignore";
+            const isDuplicate = duplicateFields.has(currentValue);
+            return (
+              <tr
+                key={header}
+                className="border-t"
+              >
+                <td className="p-2 text-sm">
+                  {header}
+                </td>
 
-              <td className="p-2">
-                <select
-                  value={mapping[header] || "ignore"}
-                  onChange={(e) =>
-                    onChange(
-                      header,
-                      e.target.value
-                    )
-                  }
-                  className="border rounded p-1 w-full"
-                >
-                  {fields.map((field) => (
-                    <option
-                      key={field}
-                      value={field}
+                <td className="p-2">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={currentValue}
+                      onChange={(e) =>
+                        onChange(
+                          header,
+                          e.target.value
+                        )
+                      }
+                      className={`border rounded p-1 w-full text-sm ${
+                        isDuplicate
+                          ? "border-red-400 bg-red-50 text-red-800"
+                          : ""
+                      }`}
                     >
-                      {field}
-                    </option>
-                  ))}
-                </select>
-              </td>
-            </tr>
-          ))}
+                      {fields.map((field) => (
+                        <option
+                          key={field}
+                          value={field}
+                        >
+                          {field}
+                        </option>
+                      ))}
+                    </select>
+                    {isDuplicate && (
+                      <span className="text-red-500 text-xs whitespace-nowrap">⚠ duplicate</span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
+
+      {duplicateFields.size > 0 && (
+        <p className="mt-3 text-sm text-red-600">
+          Mapped more than once: <span className="font-semibold">{[...duplicateFields].join(", ")}</span>
+        </p>
+      )}
     </div>
   );
 };

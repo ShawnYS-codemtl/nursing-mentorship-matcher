@@ -1,11 +1,43 @@
 import React, { useState } from "react";
 import { uploadCsvFiles, confirmImport } from "../../services/api";
-import type { ImportPreviewResponse } from "../../types";
+import type { ColumnMapping, ImportPreviewResponse } from "../../types";
 import ImportMappingTable from "./ImportMappingTable";
 import { MENTEE_FIELDS, MENTOR_FIELDS } from "../../constants/importFields";
 
 interface Props {
   onRefresh: () => void;
+}
+
+function getDuplicateFields(mapping: ColumnMapping): Set<string> {
+  const counts = Object.values(mapping).reduce<Record<string, number>>((acc, v) => {
+    if (v && v !== "ignore") acc[v] = (acc[v] ?? 0) + 1;
+    return acc;
+  }, {});
+  return new Set(Object.entries(counts).filter(([, c]) => c > 1).map(([f]) => f));
+}
+
+function parseImportError(err: unknown): { message: string; details: string[] } {
+  let message = "Import failed. Please try again.";
+  const details: string[] = [];
+  try {
+    const body = JSON.parse((err as Error).message);
+    if (body.error === "Validation failed") {
+      message = "Validation failed. Fix the issues below and try again.";
+      const fmt = (errors: any[], label: string) =>
+        (errors ?? []).forEach((e) => {
+          if (e.missing_fields?.length)
+            details.push(`${label} row ${e.row}: missing — ${e.missing_fields.join(", ")}`);
+          (e.invalid_fields ?? []).forEach((f: any) =>
+            details.push(`${label} row ${e.row}: invalid value for "${f.field}" (got: ${JSON.stringify(f.value)})`)
+          );
+        });
+      fmt(body.mentor_errors, "Mentor");
+      fmt(body.mentee_errors, "Mentee");
+    } else if (body.error) {
+      message = body.error;
+    }
+  } catch { /* non-JSON error — keep generic message */ }
+  return { message, details };
 }
 
 const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
@@ -15,12 +47,14 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
   const [preview, setPreview] = useState<ImportPreviewResponse | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<{ message: string; details: string[] } | null>(null);
 
   const handlePreviewUpload = async () => {
     if (!mentorFile || !menteeFile) return;
 
     try {
       setLoadingPreview(true);
+      setImportError(null);
       const formData = new FormData();
       formData.append("mentor_file", mentorFile);
       formData.append("mentee_file", menteeFile);
@@ -37,8 +71,19 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
   const handleConfirmImport = async () => {
     if (!mentorFile || !menteeFile || !preview) return;
 
+    const mentorDups = getDuplicateFields(preview.mentor.mapping);
+    const menteeDups = getDuplicateFields(preview.mentee.mapping);
+    if (mentorDups.size > 0 || menteeDups.size > 0) {
+      const details: string[] = [];
+      if (mentorDups.size > 0) details.push(`Mentor CSV: duplicate fields — ${[...mentorDups].join(", ")}`);
+      if (menteeDups.size > 0) details.push(`Mentee CSV: duplicate fields — ${[...menteeDups].join(", ")}`);
+      setImportError({ message: "Fix duplicate mappings before importing.", details });
+      return;
+    }
+
     try {
       setImporting(true);
+      setImportError(null);
       const formData = new FormData();
       formData.append("mentor_file", mentorFile);
       formData.append("mentee_file", menteeFile);
@@ -46,11 +91,10 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
       formData.append("mentee_mapping", JSON.stringify(preview.mentee.mapping));
       await confirmImport(formData);
       onRefresh();
-      alert("Import successful");
       setPreview(null);
     } catch (err) {
       console.error(err);
-      alert("Import failed");
+      setImportError(parseImportError(err));
     } finally {
       setImporting(false);
     }
@@ -115,6 +159,7 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
                 mapping={preview.mentor.mapping}
                 fields={MENTOR_FIELDS}
                 onChange={(column, value) => {
+                  setImportError(null);
                   setPreview((prev) => {
                     if (!prev) return prev;
                     return {
@@ -133,6 +178,7 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
                 mapping={preview.mentee.mapping}
                 fields={MENTEE_FIELDS}
                 onChange={(column, value) => {
+                  setImportError(null);
                   setPreview((prev) => {
                     if (!prev) return prev;
                     return {
@@ -160,6 +206,17 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
               >
                 {importing ? "Importing..." : "Confirm Import"}
               </button>
+
+              {importError && (
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
+                  <p className="font-semibold text-red-700">{importError.message}</p>
+                  {importError.details.length > 0 && (
+                    <ul className="mt-1 space-y-0.5 text-red-600 list-disc list-inside">
+                      {importError.details.map((d, i) => <li key={i}>{d}</li>)}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

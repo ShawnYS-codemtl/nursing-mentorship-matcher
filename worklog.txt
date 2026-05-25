@@ -311,3 +311,10 @@ Sun, May 25
       (now handled specially in the UI)
 - added potential_score?: number to ScoreBreakdown type in types.ts
 - updated stale test assertions in test_matching_manual.py to match current algorithm
+- created UserGuidePage.tsx: 8-section walkthrough covering import, column mapping, running
+  the algorithm, reading match scores, locking, manual matching, exporting, and resetting the DB
+- added multi-page navigation: App.tsx now manages activePage state and routes between
+  DashboardPage and UserGuidePage
+- updated DashboardLayout to accept activePage and onNavigate props and thread them to Sidebar
+- updated Sidebar with functional nav buttons (Dashboard / User Guide) and active state styling
+- updated DashboardPage to accept and forward onNavigate prop

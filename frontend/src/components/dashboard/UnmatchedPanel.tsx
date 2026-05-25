@@ -4,6 +4,25 @@ import { useSelectionController } from "../../hooks/useSelectionController";
 import { overrideMatch } from "../../services/api";
 import { useMatchScore } from "../../hooks/useMatchScore";
 
+type SortField = "name" | "program" | "year_in_program";
+type SortDir = "asc" | "desc";
+
+function sortList<T extends { name: string; program: string; year_in_program: number }>(
+  items: T[],
+  field: SortField,
+  dir: SortDir
+): T[] {
+  return [...items].sort((a, b) => {
+    const av = field === "year_in_program" ? a[field] : a[field].toLowerCase();
+    const bv = field === "year_in_program" ? b[field] : b[field].toLowerCase();
+    if (av < bv) return dir === "asc" ? -1 : 1;
+    if (av > bv) return dir === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
+const SORT_LABELS: Record<SortField, string> = { name: "Name", program: "Program", year_in_program: "Year" };
+
 interface Props {
   refreshKey: number;
   onRefresh: () => void;
@@ -12,6 +31,10 @@ interface Props {
 const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
   const { mentees, mentors, loading, error } = useUnmatched(refreshKey);
   const [collapsed, setCollapsed] = useState(false);
+  const [menteeSortField, setMenteeSortField] = useState<SortField>("name");
+  const [menteeSortDir, setMenteeSortDir] = useState<SortDir>("asc");
+  const [mentorSortField, setMentorSortField] = useState<SortField>("name");
+  const [mentorSortDir, setMentorSortDir] = useState<SortDir>("asc");
   const {
     selectedMentee,
     selectedMentor,
@@ -104,6 +127,7 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
                       <p className="text-gray-600">Program: {selectedMentor.program}</p>
                       <p className="text-gray-600">Year: {selectedMentor.year_in_program}</p>
                       <p className="text-gray-600">Specialties: {selectedMentor.specialties.join(", ")}</p>
+                      <p className="text-gray-600">Languages: {selectedMentor.languages.join(", ")}</p>
                       <p className="text-gray-600">Capacity: {selectedMentor.remaining_capacity}</p>
                     </div>
                   ) : (
@@ -119,13 +143,31 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
 
                   {sidePanelMode === "mentee-picker" && (
                     <>
-                      <div className="flex justify-between items-center mb-3">
+                      <div className="flex justify-between items-center mb-2">
                         <h3 className="text-sm font-semibold text-gray-700">Select Mentee</h3>
                         <button onClick={closeSidePanel} className="text-xs text-gray-400 hover:text-gray-600">
                           Close
                         </button>
                       </div>
-                      {mentees.map((m) => (
+                      <div className="flex gap-1 mb-2">
+                        {(Object.keys(SORT_LABELS) as SortField[]).map((f) => (
+                          <button
+                            key={f}
+                            onClick={() => {
+                              if (menteeSortField === f) setMenteeSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                              else { setMenteeSortField(f); setMenteeSortDir("asc"); }
+                            }}
+                            className={`px-2 py-0.5 text-xs rounded border ${
+                              menteeSortField === f
+                                ? "bg-blue-100 border-blue-400 font-semibold text-blue-800"
+                                : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                            }`}
+                          >
+                            {SORT_LABELS[f]}{menteeSortField === f ? (menteeSortDir === "asc" ? " ▲" : " ▼") : ""}
+                          </button>
+                        ))}
+                      </div>
+                      {sortList(mentees, menteeSortField, menteeSortDir).map((m) => (
                         <div
                           key={m.id}
                           onClick={() => selectMentee(m)}
@@ -143,13 +185,31 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
 
                   {sidePanelMode === "mentor-picker" && (
                     <>
-                      <div className="flex justify-between items-center mb-3">
+                      <div className="flex justify-between items-center mb-2">
                         <h3 className="text-sm font-semibold text-gray-700">Select Mentor</h3>
                         <button onClick={closeSidePanel} className="text-xs text-gray-400 hover:text-gray-600">
                           Close
                         </button>
                       </div>
-                      {mentors.map((m) => (
+                      <div className="flex gap-1 mb-2">
+                        {(Object.keys(SORT_LABELS) as SortField[]).map((f) => (
+                          <button
+                            key={f}
+                            onClick={() => {
+                              if (mentorSortField === f) setMentorSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                              else { setMentorSortField(f); setMentorSortDir("asc"); }
+                            }}
+                            className={`px-2 py-0.5 text-xs rounded border ${
+                              mentorSortField === f
+                                ? "bg-green-100 border-green-400 font-semibold text-green-800"
+                                : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                            }`}
+                          >
+                            {SORT_LABELS[f]}{mentorSortField === f ? (mentorSortDir === "asc" ? " ▲" : " ▼") : ""}
+                          </button>
+                        ))}
+                      </div>
+                      {sortList(mentors, mentorSortField, mentorSortDir).map((m) => (
                         <div
                           key={m.id}
                           onClick={() => selectMentor(m)}

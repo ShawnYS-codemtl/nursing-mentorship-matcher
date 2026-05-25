@@ -332,3 +332,21 @@ Mon, May 26
     - pre-flight duplicate check blocks Confirm Import and shows inline error without hitting the API
     - replaced generic alert("Import failed") with an inline red error panel that surfaces
       structured backend errors: missing required fields and invalid type errors with row numbers
+- production deployment setup (Vercel + Render + Supabase):
+    - frontend/src/services/api.ts: BASE_URL reads from VITE_API_URL env var, falls back to localhost
+    - backend/app/database.py: reads DATABASE_URL env var; falls back to SQLite locally;
+      auto-fixes postgres:// -> postgresql:// for SQLAlchemy 2.x compatibility
+    - backend/run.py: binds to 0.0.0.0, reads PORT from env, debug off when FLASK_ENV=production
+    - backend/app/routes/__init__.py: CORS origins read from ALLOWED_ORIGINS env var
+    - backend/requirements.txt: added psycopg2-binary for PostgreSQL support
+    - backend/render.yaml: new Render deployment config file
+
+  Deployment steps:
+    1. Supabase: create free project -> Project Settings -> Database -> Connection string (URI)
+       - if password has special chars (@#%/:?&=+ space), percent-encode:
+         python3 -c "import urllib.parse; print(urllib.parse.quote('password', safe=''))"
+    2. Render: connect GitHub repo, set root dir to backend/
+       - env vars: DATABASE_URL, ALLOWED_ORIGINS=https://<vercel-url>, FLASK_ENV=production
+    3. Vercel: import GitHub repo, set root dir to frontend/
+       - env var: VITE_API_URL=https://<render-url>
+    4. Push code -> both services auto-deploy from GitHub

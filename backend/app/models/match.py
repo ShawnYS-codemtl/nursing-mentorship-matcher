@@ -9,6 +9,7 @@ class Match(Base):
         UniqueConstraint("mentor_id", "mentee_id", name="uq_match_pair"),
     )
     id = Column(Integer, primary_key=True)
+    session_id = Column(String, nullable=False, index=True)
     mentor_id = Column(Integer, ForeignKey('mentors.id'), nullable=False)
     mentee_id = Column(Integer, ForeignKey('mentees.id'), nullable=False)
     match_score = Column(Float, nullable=False)

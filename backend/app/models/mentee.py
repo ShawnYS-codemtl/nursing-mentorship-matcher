@@ -1,14 +1,16 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, ForeignKey, JSON, UniqueConstraint
 from sqlalchemy.orm import relationship
 from ..database import Base
 from datetime import datetime, timezone
 
 class Mentee(Base):
     __tablename__ = 'mentees'
+    __table_args__ = (UniqueConstraint('email', 'session_id', name='uq_mentee_email_session'),)
     id = Column(Integer, primary_key=True)
-    form_id = Column(String, unique=False, nullable=False)   #change to unique later
+    session_id = Column(String, nullable=False, index=True)
+    form_id = Column(String, unique=False, nullable=False)
     name = Column(String, nullable=False)
-    email = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False)
     program = Column(String, nullable=False)
     year_in_program = Column(Integer, nullable=False)
     specialties = Column(JSON, default=[])

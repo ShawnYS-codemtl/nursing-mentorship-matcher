@@ -7,7 +7,7 @@ from app.services.parsing.form_processors import (
 from app.services.importing.resolve import resolve_preferences
 
 
-def import_data(get_mentor_rows, get_mentee_rows):
+def import_data(get_mentor_rows, get_mentee_rows, session_id):
     session = SessionLocal()
 
     try:
@@ -19,18 +19,18 @@ def import_data(get_mentor_rows, get_mentee_rows):
 
         # --- Insert mentees ---
         for row in mentee_rows:
-            mentee = build_mentee_from_row(row)
+            mentee = build_mentee_from_row(row, session_id)
 
-            existing = session.query(Mentee).filter_by(email=mentee.email).first()
+            existing = session.query(Mentee).filter_by(email=mentee.email, session_id=session_id).first()
             if not existing:
                 session.add(mentee)
                 inserted_mentees += 1
 
         # --- Insert mentors ---
         for row in mentor_rows:
-            mentor = build_mentor_from_row(row)
+            mentor = build_mentor_from_row(row, session_id)
 
-            existing = session.query(Mentor).filter_by(email=mentor.email).first()
+            existing = session.query(Mentor).filter_by(email=mentor.email, session_id=session_id).first()
             if not existing:
                 session.add(mentor)
                 inserted_mentors += 1
@@ -38,7 +38,7 @@ def import_data(get_mentor_rows, get_mentee_rows):
         session.commit()
 
         # --- Resolve preferences ---
-        resolve_preferences(session)
+        resolve_preferences(session, session_id)
         session.commit()
 
         return {

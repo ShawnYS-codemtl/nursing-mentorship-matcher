@@ -2,8 +2,9 @@ from app.models import Mentor, Mentee
 import uuid
 
 
-def build_mentor_from_row(row: dict) -> Mentor:
+def build_mentor_from_row(row: dict, session_id: str) -> Mentor:
     mentor = Mentor()
+    mentor.session_id = session_id
     mentor.form_id = str(uuid.uuid4())
     mentor.name = row.get("name", "")
     mentor.email = row.get("email", "")
@@ -19,8 +20,9 @@ def build_mentor_from_row(row: dict) -> Mentor:
     return mentor
 
 
-def build_mentee_from_row(row: dict) -> Mentee:
+def build_mentee_from_row(row: dict, session_id: str) -> Mentee:
     mentee = Mentee()
+    mentee.session_id = session_id
     mentee.form_id = str(uuid.uuid4())
     mentee.name = row.get("name", "")
     mentee.email = row.get("email", "")

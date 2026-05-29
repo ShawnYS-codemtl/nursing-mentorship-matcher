@@ -4,16 +4,22 @@ from app.database import SessionLocal
 from app.models import Match, Mentor, Mentee
 from sqlalchemy.orm import joinedload
 from app.services.matching.scoring import calculate_match_score
+from app.utils.session import require_session_id
 
 matches_bp = Blueprint("matches", __name__)
 
 @matches_bp.route("/matches", methods=["GET"])
 def get_matches():
+    session_id, err = require_session_id()
+    if err:
+        return err
+
     session = SessionLocal()
 
     try:
         matches = (
             session.query(Match)
+            .filter(Match.session_id == session_id)
             .options(
                 joinedload(Match.mentor),
                 joinedload(Match.mentee)
@@ -58,6 +64,10 @@ def get_matches():
 
 @matches_bp.route("/matches/override", methods=["POST"])
 def override_match():
+    session_id, err = require_session_id()
+    if err:
+        return err
+
     session = SessionLocal()
 
     try:
@@ -69,9 +79,9 @@ def override_match():
         if not mentee_id or not mentor_id:
             return jsonify({"error": "mentee_id and mentor_id required"}), 400
 
-        # --- Fetch entities ---
-        mentee = session.query(Mentee).filter(Mentee.id == mentee_id).first()
-        mentor = session.query(Mentor).filter(Mentor.id == mentor_id).first()
+        # --- Fetch entities (scoped to session) ---
+        mentee = session.query(Mentee).filter(Mentee.id == mentee_id, Mentee.session_id == session_id).first()
+        mentor = session.query(Mentor).filter(Mentor.id == mentor_id, Mentor.session_id == session_id).first()
 
         if not mentee or not mentor:
             return jsonify({"error": "Mentor or Mentee not found"}), 404
@@ -79,32 +89,27 @@ def override_match():
         # --- Check if mentee already has a match ---
         existing_match = (
             session.query(Match)
-            .filter(Match.mentee_id == mentee_id)
+            .filter(Match.mentee_id == mentee_id, Match.session_id == session_id)
             .first()
         )
 
         if existing_match:
             if existing_match.is_locked:
                 return jsonify({"error": "Match is locked and cannot be overridden"}), 400
-            
+
             # If same mentor → no-op
             if existing_match.mentor_id == mentor_id:
                 return jsonify({"status": "no change"}), 200
-        
+
             session.delete(existing_match)
-            session.flush()  # 🔑 critical
+            session.flush()
 
         # --- Check mentor capacity ---
         match_count = (
             session.query(func.count(Match.id))
-            .filter(Match.mentor_id == mentor_id)
+            .filter(Match.mentor_id == mentor_id, Match.session_id == session_id)
             .scalar()
         )
-
-        mentor = session.query(Mentor).filter(Mentor.id == mentor_id).first()
-
-        if not mentor:
-            return jsonify({"error": "Mentor not found"}), 404
 
         if match_count >= mentor.max_mentees:
             return jsonify({"error": "Mentor is at full capacity"}), 400
@@ -114,6 +119,7 @@ def override_match():
 
         # --- Create new match ---
         new_match = Match(
+            session_id=session_id,
             mentor_id=mentor_id,
             mentee_id=mentee_id,
             match_score=score,
@@ -126,7 +132,6 @@ def override_match():
         session.add(new_match)
         session.commit()
 
-        # --- Return full object (frontend-ready) ---
         return jsonify({
             "message": "Match overridden successfully",
             "match_id": new_match.id
@@ -141,10 +146,14 @@ def override_match():
 
 @matches_bp.route("/matches/<int:match_id>", methods=["DELETE"])
 def delete_match(match_id):
+    session_id, err = require_session_id()
+    if err:
+        return err
+
     session = SessionLocal()
 
     try:
-        match = session.query(Match).filter(Match.id == match_id).first()
+        match = session.query(Match).filter(Match.id == match_id, Match.session_id == session_id).first()
 
         if not match:
             return jsonify({"error": "Match not found"}), 404
@@ -166,16 +175,20 @@ def delete_match(match_id):
 
 @matches_bp.route("/matches/<int:match_id>/lock", methods=["PATCH"])
 def toggle_match_lock(match_id):
+    session_id, err = require_session_id()
+    if err:
+        return err
+
     session = SessionLocal()
 
-    try: 
+    try:
         data = request.get_json()
         is_locked = data.get("is_locked")
 
         if is_locked is None:
             return {"error": "is_locked required"}, 400
 
-        match = session.get(Match, match_id)
+        match = session.query(Match).filter(Match.id == match_id, Match.session_id == session_id).first()
         if not match:
             return {"error": "Match not found"}, 404
 
@@ -191,6 +204,6 @@ def toggle_match_lock(match_id):
     except Exception as e:
         session.rollback()
         return jsonify({"error": str(e)}), 500
-    
+
     finally:
         session.close()

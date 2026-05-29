@@ -5,6 +5,7 @@ from app.services.importing.mapping import detect_mapping
 from app.services.importing.aliases import MENTEE_ALIASES, MENTOR_ALIASES
 from app.services.importing.normalization import normalize_rows
 from app.services.importing.validation import validate_rows, REQUIRED_MENTEE_FIELDS, REQUIRED_MENTOR_FIELDS
+from app.utils.session import require_session_id
 import csv
 import traceback
 import io
@@ -14,6 +15,10 @@ import_bp = Blueprint("import", __name__)
 
 @import_bp.route("/import/preview", methods=["POST"])
 def preview_import():
+    # Preview doesn't persist data, but still require session for consistency
+    session_id, err = require_session_id()
+    if err:
+        return err
 
     try:
         mentor_file = request.files.get("mentor_file")
@@ -72,6 +77,9 @@ def preview_import():
 
 @import_bp.route("/import/confirm", methods=["POST"])
 def confirm_import():
+    session_id, err = require_session_id()
+    if err:
+        return err
 
     try:
         mentor_mapping = json.loads(
@@ -147,7 +155,8 @@ def confirm_import():
 
         result = import_data(
             lambda: normalized_mentor_rows,
-            lambda: normalized_mentee_rows
+            lambda: normalized_mentee_rows,
+            session_id
         )
 
         return jsonify({

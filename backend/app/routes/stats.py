@@ -2,42 +2,50 @@ from flask import Blueprint, jsonify
 from sqlalchemy import func
 from app.database import SessionLocal
 from app.models import Mentor, Mentee, Match
+from app.utils.session import require_session_id
 
 stats_bp = Blueprint("stats", __name__)
 
 @stats_bp.route("/stats", methods=["GET"])
 def get_stats():
+    session_id, err = require_session_id()
+    if err:
+        return err
+
     session = SessionLocal()
 
     try:
-        # Total counts
-        mentor_count = session.query(func.count(Mentor.id)).scalar()
-        mentee_count = session.query(func.count(Mentee.id)).scalar()
-        match_count = session.query(func.count(Match.id)).scalar()
+        mentor_count = session.query(func.count(Mentor.id)).filter(Mentor.session_id == session_id).scalar()
+        mentee_count = session.query(func.count(Mentee.id)).filter(Mentee.session_id == session_id).scalar()
+        match_count = session.query(func.count(Match.id)).filter(Match.session_id == session_id).scalar()
 
-        # Unmatched mentees
-        matched_mentee_ids = session.query(Match.mentee_id).subquery()
+        # Unmatched mentees (within session)
+        matched_mentee_ids = (
+            session.query(Match.mentee_id)
+            .filter(Match.session_id == session_id)
+            .subquery()
+        )
 
         unmatched_mentees = (
             session.query(func.count(Mentee.id))
-            .filter(~Mentee.id.in_(matched_mentee_ids))
+            .filter(Mentee.session_id == session_id, ~Mentee.id.in_(matched_mentee_ids))
             .scalar()
         )
 
-        # Available mentors (based on capacity)
-        # Count matches per mentor
+        # Available mentors by capacity (within session)
         mentor_match_counts = (
             session.query(
                 Match.mentor_id,
                 func.count(Match.id).label("match_count")
             )
+            .filter(Match.session_id == session_id)
             .group_by(Match.mentor_id)
             .subquery()
         )
 
-        # Join with mentors
         available_mentors = (
             session.query(func.count(Mentor.id))
+            .filter(Mentor.session_id == session_id)
             .outerjoin(
                 mentor_match_counts,
                 Mentor.id == mentor_match_counts.c.mentor_id
@@ -48,13 +56,17 @@ def get_stats():
             .scalar()
         )
 
-                # --- Score stats (SQL) ---
-        avg_score = session.query(func.avg(Match.match_score)).scalar()
-        min_score = session.query(func.min(Match.match_score)).scalar()
-        max_score = session.query(func.max(Match.match_score)).scalar()
+        # Score stats (within session)
+        avg_score = session.query(func.avg(Match.match_score)).filter(Match.session_id == session_id).scalar()
+        min_score = session.query(func.min(Match.match_score)).filter(Match.session_id == session_id).scalar()
+        max_score = session.query(func.max(Match.match_score)).filter(Match.session_id == session_id).scalar()
 
-        # --- Median (Python fallback) ---
-        scores = session.query(Match.match_score).order_by(Match.match_score).all()
+        scores = (
+            session.query(Match.match_score)
+            .filter(Match.session_id == session_id)
+            .order_by(Match.match_score)
+            .all()
+        )
         scores = [s[0] for s in scores]
 
         median_score = None

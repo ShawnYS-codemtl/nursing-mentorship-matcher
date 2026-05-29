@@ -5,17 +5,22 @@ from sqlalchemy.orm import joinedload
 
 from app.database import SessionLocal
 from app.models import Match
+from app.utils.session import require_session_id
 
 export_bp = Blueprint("export", __name__)
 
 @export_bp.route("/export", methods=["GET"])
 def export_matches():
+    session_id, err = require_session_id()
+    if err:
+        return err
+
     session = SessionLocal()
 
     try:
-        # --- Fetch matches with related data ---
         matches = (
             session.query(Match)
+            .filter(Match.session_id == session_id)
             .options(
                 joinedload(Match.mentor),
                 joinedload(Match.mentee)
@@ -23,11 +28,9 @@ def export_matches():
             .all()
         )
 
-        # --- Create in-memory CSV ---
         output = StringIO()
         writer = csv.writer(output)
 
-        # Header
         writer.writerow([
             "mentor_name",
             "mentor_email",
@@ -38,7 +41,6 @@ def export_matches():
             "reason_summary"
         ])
 
-        # Rows
         for match in matches:
             reason = match.match_reason or {}
             summary = "; ".join(reason.get("reasons", []))
@@ -50,10 +52,8 @@ def export_matches():
                 match.match_score,
                 match.match_type,
                 summary
-                
             ])
 
-        # Move cursor to start
         output.seek(0)
 
         return Response(

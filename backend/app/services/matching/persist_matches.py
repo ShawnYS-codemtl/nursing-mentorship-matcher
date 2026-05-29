@@ -1,7 +1,7 @@
 from app.database import SessionLocal
 from app.models import Match
 
-def run_matching_and_persist(matching_results):
+def run_matching_and_persist(matching_results, session_id):
     session = SessionLocal()
 
     try:
@@ -17,21 +17,11 @@ def run_matching_and_persist(matching_results):
             seen.add(key)
             deduped_results.append(r)
 
-        # later: only overwrite non-locked matches
         session.query(Match)\
-            .filter(Match.is_locked == False)\
+            .filter(Match.session_id == session_id, Match.is_locked == False)\
             .delete(synchronize_session=False)
 
         for result in deduped_results:
-            match = Match(
-                mentor_id=result["mentor_id"],
-                mentee_id=result["mentee_id"],
-                match_score=result["score"],
-                match_reason=result.get("breakdown"),
-                match_type=result.get("match_type"),
-                is_manual_override=False,
-                is_locked=result.get("is_locked", False)
-            )
             existing = session.query(Match).filter_by(
                 mentor_id=result["mentor_id"],
                 mentee_id=result["mentee_id"]
@@ -40,6 +30,16 @@ def run_matching_and_persist(matching_results):
             if existing:
                 continue
 
+            match = Match(
+                session_id=session_id,
+                mentor_id=result["mentor_id"],
+                mentee_id=result["mentee_id"],
+                match_score=result["score"],
+                match_reason=result.get("breakdown"),
+                match_type=result.get("match_type"),
+                is_manual_override=False,
+                is_locked=result.get("is_locked", False)
+            )
             session.add(match)
 
         session.commit()

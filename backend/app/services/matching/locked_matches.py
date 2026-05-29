@@ -1,9 +1,9 @@
-from app.models import Match 
+from app.models import Match
 
-def get_locked_matches_from_db(db_session):
+def get_locked_matches_from_db(db_session, session_id):
     locked_rows = (
         db_session.query(Match)
-        .filter(Match.is_locked == True)
+        .filter(Match.is_locked == True, Match.session_id == session_id)
         .all()
     )
 

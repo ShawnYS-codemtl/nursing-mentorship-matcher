@@ -14,7 +14,8 @@ A web tool for McGill's nursing programs that pairs mentors and mentees from Goo
 - **Lock matches** — lock individual pairs so algorithm re-runs don't overwrite them
 - **Manual matching** — browse unmatched mentors and mentees side-by-side with live score preview; sort lists by name, program, or year
 - **CSV export** — download all matches as a spreadsheet
-- **Reset database** — clear all data and start fresh
+- **Reset database** — clear all data and start fresh for the current workspace
+- **Workspace isolation** — each user works in their own session identified by a shareable room code; data is fully isolated between workspaces
 
 ---
 
@@ -48,8 +49,12 @@ python run.py                  # http://127.0.0.1:5000
 
 Utility scripts (run from `backend/`):
 ```bash
-python scripts/reset_db.py          # drop and recreate all tables
-python scripts/insert_test_data.py  # populate with synthetic data
+python scripts/reset_db.py               # drop and recreate all tables
+python scripts/insert_test_data.py       # populate with synthetic data
+python scripts/migrate_add_session_id.py # add session_id columns to existing DB
+python scripts/cleanup_workspaces.py --list          # list all workspaces with row counts
+python scripts/cleanup_workspaces.py --days 90       # preview stale workspace deletion (dry run)
+python scripts/cleanup_workspaces.py --days 90 --confirm  # actually delete stale workspaces
 python -m tests.test_matching_manual  # run scoring tests
 ```
 
@@ -64,6 +69,14 @@ npm run lint   # ESLint
 ```
 
 No environment variables are needed for local development. The frontend defaults to `http://127.0.0.1:5000` and the backend uses SQLite automatically.
+
+> **macOS note:** If port 5000 is taken by AirPlay Receiver, run on a different port and point the frontend at it:
+> ```bash
+> # backend
+> PORT=5001 python run.py
+> # frontend/.env.local
+> VITE_API_URL=http://127.0.0.1:5001
+> ```
 
 ---
 
@@ -114,7 +127,7 @@ Both services auto-deploy on push to main.
 1. **Preview** (`mapping.py`) — normalizes CSV column names and matches them to canonical fields via alias dictionaries (`aliases.py`)
 2. **Normalize** (`normalization.py`) — converts raw CSV values to typed canonical fields (year integers, JSON arrays, normalized strings)
 3. **Validate** (`validation.py`) — checks required fields are present and correctly typed; returns structured per-row errors
-4. **Persist** (`import_service.py`) — builds ORM objects, deduplicates by email, resolves explicit preference names to database IDs
+4. **Persist** (`import_service.py`) — builds ORM objects, deduplicates by `(email, session_id)`, resolves explicit preference names to database IDs
 
 ### Matching Pipeline (`backend/app/services/matching/`)
 
@@ -149,6 +162,8 @@ nursing-mentorship-matcher/
 │   └── app/
 │       ├── models/                   # SQLAlchemy ORM: Mentor, Mentee, Match
 │       ├── routes/                   # Flask blueprints (one file per endpoint group)
+│       ├── utils/
+│       │   └── session.py            # require_session_id() — extracts X-Session-ID header
 │       └── services/
 │           ├── importing/            # CSV import pipeline
 │           │   ├── aliases.py        # fuzzy-match vocabulary
@@ -164,10 +179,11 @@ nursing-mentorship-matcher/
 └── frontend/
     └── src/
         ├── components/
-│       │   ├── dashboard/            # StatsPanel, MatchesTable, UnmatchedPanel
-│       │   └── controls/             # ImportPanel, ImportMappingTable, ControlPanel
+        │   ├── SessionGate.tsx       # workspace code entry screen (shown before dashboard)
+        │   ├── dashboard/            # StatsPanel, MatchesTable, UnmatchedPanel
+        │   └── controls/             # ImportPanel, ImportMappingTable, ControlPanel
         ├── hooks/                    # useMatches, useStats, useUnmatched, useMatchScore
-        ├── services/api.ts           # all fetch calls
+        ├── services/api.ts           # all fetch calls + session header utilities
         ├── types.ts                  # shared TypeScript interfaces
         └── constants/importFields.ts # canonical field lists for dropdowns
 ```

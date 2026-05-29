@@ -350,3 +350,37 @@ Mon, May 26
     3. Vercel: import GitHub repo, set root dir to frontend/
        - env var: VITE_API_URL=https://<render-url>
     4. Push code -> both services auto-deploy from GitHub
+
+Thu, May 29
+- implemented workspace isolation so each user's data is fully separated from others
+- approach: shareable room code (e.g. mcgill-fall-2025) stored in localStorage,
+  sent as X-Session-ID header on every API request
+- backend models (Mentor, Mentee, Match): added session_id column, replaced global
+  email UNIQUE constraint with composite UNIQUE(email, session_id)
+- added app/utils/session.py: require_session_id() helper returns 401 if header is absent
+- threaded session_id through the import pipeline:
+    - import_service.py: deduplication now filters by (email, session_id)
+    - form_processors.py: build_mentor/mentee_from_row() accepts and sets session_id
+    - resolve.py: name lookups scoped to session
+- threaded session_id through the matching pipeline:
+    - locked_matches.py: filters locked matches by session_id
+    - persist_matches.py: tags new matches, scopes delete to current session only
+- updated all 8 route files to require and filter by session_id:
+    - matches, matching, import, stats, unmatched, export, score_preview, reset
+    - reset-db now deletes only the caller's workspace data (not the whole DB)
+- added scripts/migrate_add_session_id.py:
+    - PostgreSQL: ALTER TABLE statements; assigns existing rows to session 'default'
+    - SQLite: ADD COLUMN with default 'default'
+- added scripts/cleanup_workspaces.py for pruning stale sessions:
+    - --list: show all workspaces with row counts and last activity
+    - --days N: preview (dry run) workspaces inactive longer than N days
+    - --session CODE: target a specific workspace
+    - --confirm: required to actually delete anything
+- frontend changes:
+    - api.ts: added getSessionCode, setSessionCode, clearSessionCode helpers;
+      sessionHeader() injects X-Session-ID into every fetch call
+    - SessionGate.tsx: new full-screen landing shown when no code is stored;
+      user types or generates a room code to join/create a workspace
+    - App.tsx: renders SessionGate until a code is set, then shows the dashboard
+    - Header.tsx: displays active workspace code as a pill with a Switch button
+      that clears localStorage and reloads (returns to SessionGate)

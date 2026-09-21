@@ -56,6 +56,20 @@ def get_stats():
             .scalar()
         )
 
+        # Mentors carrying nobody at all (within session). Distinct from
+        # available_mentors, which also counts a mentor who has a mentee but
+        # still has room for another.
+        unpaired_mentors = (
+            session.query(func.count(Mentor.id))
+            .filter(Mentor.session_id == session_id)
+            .outerjoin(
+                mentor_match_counts,
+                Mentor.id == mentor_match_counts.c.mentor_id
+            )
+            .filter(func.coalesce(mentor_match_counts.c.match_count, 0) == 0)
+            .scalar()
+        )
+
         # Score stats (within session)
         avg_score = session.query(func.avg(Match.match_score)).filter(Match.session_id == session_id).scalar()
         min_score = session.query(func.min(Match.match_score)).filter(Match.session_id == session_id).scalar()
@@ -84,6 +98,7 @@ def get_stats():
             "matches": match_count,
             "unmatched_mentees": unmatched_mentees,
             "available_mentors": available_mentors,
+            "unpaired_mentors": unpaired_mentors,
             "avg_score": round(avg_score, 2) if avg_score else None,
             "min_score": min_score,
             "max_score": max_score,

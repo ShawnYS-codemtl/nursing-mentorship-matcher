@@ -88,6 +88,7 @@ export interface Stats {
     matches: number;
     unmatched_mentees: number;
     available_mentors: number;
+    unpaired_mentors: number;
     avg_score: number;
     min_score: number;
     max_score: number;

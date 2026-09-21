@@ -7,6 +7,36 @@ from app.services.parsing.form_processors import (
 from app.services.importing.resolve import resolve_preferences
 
 
+def _dedupe_key(email):
+    """Emails are case-insensitive in practice; compare them that way."""
+    return (email or "").strip().lower()
+
+
+def _existing_emails(session, model, session_id):
+    rows = session.query(model.email).filter(model.session_id == session_id).all()
+    return {_dedupe_key(email) for (email,) in rows}
+
+
+def _insert_new(session, rows, builder, model, session_id):
+    """Add one record per unseen email, skipping duplicates already in the DB
+    and duplicates repeated within this batch."""
+    seen = _existing_emails(session, model, session_id)
+    inserted = 0
+
+    for row in rows:
+        record = builder(row, session_id)
+        key = _dedupe_key(record.email)
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        session.add(record)
+        inserted += 1
+
+    return inserted
+
+
 def import_data(get_mentor_rows, get_mentee_rows, session_id):
     session = SessionLocal()
 
@@ -14,26 +44,13 @@ def import_data(get_mentor_rows, get_mentee_rows, session_id):
         mentor_rows = get_mentor_rows()
         mentee_rows = get_mentee_rows()
 
-        inserted_mentors = 0
-        inserted_mentees = 0
+        inserted_mentees = _insert_new(
+            session, mentee_rows, build_mentee_from_row, Mentee, session_id
+        )
 
-        # --- Insert mentees ---
-        for row in mentee_rows:
-            mentee = build_mentee_from_row(row, session_id)
-
-            existing = session.query(Mentee).filter_by(email=mentee.email, session_id=session_id).first()
-            if not existing:
-                session.add(mentee)
-                inserted_mentees += 1
-
-        # --- Insert mentors ---
-        for row in mentor_rows:
-            mentor = build_mentor_from_row(row, session_id)
-
-            existing = session.query(Mentor).filter_by(email=mentor.email, session_id=session_id).first()
-            if not existing:
-                session.add(mentor)
-                inserted_mentors += 1
+        inserted_mentors = _insert_new(
+            session, mentor_rows, build_mentor_from_row, Mentor, session_id
+        )
 
         session.commit()
 

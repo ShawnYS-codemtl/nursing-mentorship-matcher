@@ -7,7 +7,7 @@ def build_mentor_from_row(row: dict, session_id: str) -> Mentor:
     mentor.session_id = session_id
     mentor.form_id = str(uuid.uuid4())
     mentor.name = row.get("name", "")
-    mentor.email = row.get("email", "")
+    mentor.email = row.get("email", "").strip()
     mentor.program = row.get("program", "")
     mentor.year_in_program = row.get("year_in_program", 0)
     mentor.specialties = row.get("specialties", [])
@@ -25,7 +25,7 @@ def build_mentee_from_row(row: dict, session_id: str) -> Mentee:
     mentee.session_id = session_id
     mentee.form_id = str(uuid.uuid4())
     mentee.name = row.get("name", "")
-    mentee.email = row.get("email", "")
+    mentee.email = row.get("email", "").strip()
     mentee.program = row.get("program", "")
     mentee.year_in_program = row.get("year_in_program", 0)
     mentee.specialties = row.get("specialties", [])

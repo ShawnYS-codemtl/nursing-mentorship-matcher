@@ -17,6 +17,7 @@ const StatsPanel: React.FC<Props> = ({ refreshKey }) => {
     { label: "Total Mentees",       value: stats.mentees },
     { label: "Matches Made",        value: stats.matches },
     { label: "Unmatched Mentees",   value: stats.unmatched_mentees },
+    { label: "Unpaired Mentors",    value: stats.unpaired_mentors },
     { label: "Available Mentors",   value: stats.available_mentors },
     { label: "Avg Score",           value: stats.avg_score },
     { label: "Min / Max Score",     value: `${stats.min_score} / ${stats.max_score}` },
@@ -38,7 +39,7 @@ const StatsPanel: React.FC<Props> = ({ refreshKey }) => {
       </button>
 
       {!collapsed && (
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid grid-cols-4 xl:grid-cols-8 gap-3">
           {cards.map(({ label, value }) => (
             <div key={label} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
               <p className="text-2xl font-bold text-gray-900">{value}</p>

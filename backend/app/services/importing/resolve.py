@@ -1,22 +1,17 @@
 from app.models import Mentor, Mentee
+from app.services.importing.name_matching import build_index, resolve_names
 
-def normalize(name: str):
-    if not name:
-        return None
-    return name.strip().lower().replace(' ', '_')
 
 def build_name_lookup(session, session_id):
     mentors = session.query(Mentor).filter(Mentor.session_id == session_id).all()
     mentees = session.query(Mentee).filter(Mentee.session_id == session_id).all()
 
-    mentor_lookup = {normalize(m.name): m for m in mentors}
-    mentee_lookup = {normalize(m.name): m for m in mentees}
+    return build_index(mentors), build_index(mentees)
 
-    return mentor_lookup, mentee_lookup
 
 def resolve_preferences(session, session_id):
     """Convert stored name preferences into ID references, scoped to session."""
-    mentor_lookup, mentee_lookup = build_name_lookup(session, session_id)
+    mentor_index, mentee_index = build_name_lookup(session, session_id)
 
     mentors = session.query(Mentor).filter(Mentor.session_id == session_id).all()
     mentees = session.query(Mentee).filter(Mentee.session_id == session_id).all()
@@ -26,10 +21,13 @@ def resolve_preferences(session, session_id):
             continue
 
         resolved_ids = []
+
+        # One answer can name more than one mentee, and a mentor can list
+        # several answers, so flatten both into a single ordered id list.
         for name in mentor.preferred_mentee_names:
-            mentee = mentee_lookup.get(normalize(name))
-            if mentee:
-                resolved_ids.append(mentee.id)
+            for mentee in resolve_names(name, mentee_index):
+                if mentee.id not in resolved_ids:
+                    resolved_ids.append(mentee.id)
 
         mentor.preferred_mentee_ids = resolved_ids
 
@@ -37,6 +35,9 @@ def resolve_preferences(session, session_id):
         if not mentee.preferred_mentor_name:
             continue
 
-        mentor = mentor_lookup.get(normalize(mentee.preferred_mentor_name))
-        if mentor:
-            mentee.preferred_mentor_id = mentor.id
+        # The form asks for one mentor; if the answer names several, the
+        # first one typed wins.
+        matches = resolve_names(mentee.preferred_mentor_name, mentor_index)
+
+        if matches:
+            mentee.preferred_mentor_id = matches[0].id

@@ -9,6 +9,11 @@ interface Props {
 
   fields: string[];
 
+  // Columns the backend could not match to a system field. They fall back to
+  // "ignore" in the dropdown, which is indistinguishable from a deliberate
+  // choice unless we flag them.
+  unmatched?: string[];
+
   onChange: (
     column: string,
     value: string
@@ -20,6 +25,7 @@ const ImportMappingTable: React.FC<Props> = ({
   headers,
   mapping,
   fields,
+  unmatched = [],
   onChange,
 }) => {
   const fieldCounts = Object.values(mapping).reduce<Record<string, number>>((acc, v) => {
@@ -28,6 +34,11 @@ const ImportMappingTable: React.FC<Props> = ({
   }, {});
   const duplicateFields = new Set(
     Object.entries(fieldCounts).filter(([, c]) => c > 1).map(([f]) => f)
+  );
+
+  const unmatchedSet = new Set(unmatched);
+  const stillUnassigned = headers.filter(
+    (h) => unmatchedSet.has(h) && (mapping[h] || "ignore") === "ignore"
   );
 
   return (
@@ -53,6 +64,8 @@ const ImportMappingTable: React.FC<Props> = ({
           {headers.map((header) => {
             const currentValue = mapping[header] || "ignore";
             const isDuplicate = duplicateFields.has(currentValue);
+            const isUnrecognized =
+              !isDuplicate && unmatchedSet.has(header) && currentValue === "ignore";
             return (
               <tr
                 key={header}
@@ -75,6 +88,8 @@ const ImportMappingTable: React.FC<Props> = ({
                       className={`border rounded p-1 w-full text-sm ${
                         isDuplicate
                           ? "border-red-400 bg-red-50 text-red-800"
+                          : isUnrecognized
+                          ? "border-amber-400 bg-amber-50 text-amber-900"
                           : ""
                       }`}
                     >
@@ -90,6 +105,9 @@ const ImportMappingTable: React.FC<Props> = ({
                     {isDuplicate && (
                       <span className="text-red-500 text-xs whitespace-nowrap">⚠ duplicate</span>
                     )}
+                    {isUnrecognized && (
+                      <span className="text-amber-600 text-xs whitespace-nowrap">⚠ not recognized</span>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -101,6 +119,14 @@ const ImportMappingTable: React.FC<Props> = ({
       {duplicateFields.size > 0 && (
         <p className="mt-3 text-sm text-red-600">
           Mapped more than once: <span className="font-semibold">{[...duplicateFields].join(", ")}</span>
+        </p>
+      )}
+
+      {stillUnassigned.length > 0 && (
+        <p className="mt-3 text-sm text-amber-700">
+          Not recognized, so currently ignored:{" "}
+          <span className="font-semibold">{stillUnassigned.join(", ")}</span>. Pick a
+          system field above for any of these that should be imported.
         </p>
       )}
     </div>

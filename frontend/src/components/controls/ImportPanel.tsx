@@ -158,6 +158,7 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
                 headers={preview.mentor.headers}
                 mapping={preview.mentor.mapping}
                 fields={MENTOR_FIELDS}
+                unmatched={preview.mentor.unmatched}
                 onChange={(column, value) => {
                   setImportError(null);
                   setPreview((prev) => {
@@ -177,6 +178,7 @@ const ImportPanel: React.FC<Props> = ({ onRefresh }) => {
                 headers={preview.mentee.headers}
                 mapping={preview.mentee.mapping}
                 fields={MENTEE_FIELDS}
+                unmatched={preview.mentee.unmatched}
                 onChange={(column, value) => {
                   setImportError(null);
                   setPreview((prev) => {

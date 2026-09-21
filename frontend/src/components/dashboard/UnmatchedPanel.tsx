@@ -5,16 +5,24 @@ import { overrideMatch } from "../../services/api";
 import { useMatchScore } from "../../hooks/useMatchScore";
 
 type SortField = "name" | "program" | "year_in_program";
+// Mentors can additionally be sorted by how many mentees they already carry.
+// Mentees have no equivalent, so the two pickers draw from different maps.
+type MentorSortField = SortField | "current_matches";
 type SortDir = "asc" | "desc";
 
-function sortList<T extends { name: string; program: string; year_in_program: number }>(
+function sortList<
+  T extends { name: string; program: string; year_in_program: number; current_matches?: number }
+>(
   items: T[],
-  field: SortField,
+  field: SortField | MentorSortField,
   dir: SortDir
 ): T[] {
   return [...items].sort((a, b) => {
-    const av = field === "year_in_program" ? a[field] : a[field].toLowerCase();
-    const bv = field === "year_in_program" ? b[field] : b[field].toLowerCase();
+    const rawA = a[field as keyof T];
+    const rawB = b[field as keyof T];
+    const numeric = typeof rawA === "number";
+    const av = numeric ? (rawA as number) : String(rawA).toLowerCase();
+    const bv = numeric ? (rawB as number) : String(rawB).toLowerCase();
     if (av < bv) return dir === "asc" ? -1 : 1;
     if (av > bv) return dir === "asc" ? 1 : -1;
     return 0;
@@ -22,6 +30,11 @@ function sortList<T extends { name: string; program: string; year_in_program: nu
 }
 
 const SORT_LABELS: Record<SortField, string> = { name: "Name", program: "Program", year_in_program: "Year" };
+
+const MENTOR_SORT_LABELS: Record<MentorSortField, string> = {
+  ...SORT_LABELS,
+  current_matches: "Mentees",
+};
 
 interface Props {
   refreshKey: number;
@@ -33,7 +46,8 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [menteeSortField, setMenteeSortField] = useState<SortField>("name");
   const [menteeSortDir, setMenteeSortDir] = useState<SortDir>("asc");
-  const [mentorSortField, setMentorSortField] = useState<SortField>("name");
+  // Default to workload ascending so mentors with no mentees lead the list.
+  const [mentorSortField, setMentorSortField] = useState<MentorSortField>("current_matches");
   const [mentorSortDir, setMentorSortDir] = useState<SortDir>("asc");
   const {
     selectedMentee,
@@ -128,7 +142,14 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
                       <p className="text-gray-600">Year: {selectedMentor.year_in_program}</p>
                       <p className="text-gray-600">Specialties: {selectedMentor.specialties.join(", ")}</p>
                       <p className="text-gray-600">Languages: {selectedMentor.languages.join(", ")}</p>
-                      <p className="text-gray-600">Capacity: {selectedMentor.remaining_capacity}</p>
+                      <p className="text-gray-600">
+                        Mentees:{" "}
+                        <span className={selectedMentor.current_matches === 0 ? "text-amber-600 font-medium" : ""}>
+                          {selectedMentor.current_matches} / {selectedMentor.capacity}
+                        </span>{" "}
+                        ({selectedMentor.remaining_capacity} slot
+                        {selectedMentor.remaining_capacity === 1 ? "" : "s"} left)
+                      </p>
                     </div>
                   ) : (
                     <p className="text-green-500 text-sm">Click to select a mentor</p>
@@ -192,7 +213,7 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
                         </button>
                       </div>
                       <div className="flex gap-1 mb-2">
-                        {(Object.keys(SORT_LABELS) as SortField[]).map((f) => (
+                        {(Object.keys(MENTOR_SORT_LABELS) as MentorSortField[]).map((f) => (
                           <button
                             key={f}
                             onClick={() => {
@@ -205,7 +226,7 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
                                 : "border-gray-300 text-gray-500 hover:bg-gray-50"
                             }`}
                           >
-                            {SORT_LABELS[f]}{mentorSortField === f ? (mentorSortDir === "asc" ? " ▲" : " ▼") : ""}
+                            {MENTOR_SORT_LABELS[f]}{mentorSortField === f ? (mentorSortDir === "asc" ? " ▲" : " ▼") : ""}
                           </button>
                         ))}
                       </div>
@@ -219,7 +240,10 @@ const UnmatchedPanel: React.FC<Props> = ({ refreshKey, onRefresh }) => {
                               : "hover:bg-gray-100 text-gray-700"
                           }`}
                         >
-                          {m.name} — {m.program} · Cap: {m.remaining_capacity} · Year {m.year_in_program}
+                          {m.name} — {m.program} · Year {m.year_in_program} ·{" "}
+                          <span className={m.current_matches === 0 ? "text-amber-600 font-medium" : ""}>
+                            {m.current_matches} / {m.capacity} mentees
+                          </span>
                         </div>
                       ))}
                     </>

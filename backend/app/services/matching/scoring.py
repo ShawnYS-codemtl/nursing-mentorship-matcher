@@ -1,14 +1,24 @@
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
+# The mentor and mentee forms spell the same degree differently -- the 2026-2027
+# mentee form says "BSc(N)" while the mentor form says "BScN". Comparing the raw
+# strings scored a program match of 0 for the bulk of the cohort. Folding away
+# punctuation, spacing and case makes the two spellings equal without touching
+# what is stored and displayed.
+def _canonical_program(program: str) -> str:
+    return re.sub(r'[^a-z0-9]', '', (program or '').lower())
+
+
 _PROGRAM_CLUSTERS = [
-    {'bsc(n)', 'bni online', 'bni on campus'},
-    {
-        'msca in nursing (direct entry)',
-        'msca in advanced nursing (nurse entry)',
-        'msca in nurse practitioner',
-    },
+    {_canonical_program(p) for p in ('BSc(N)', 'BNI Online', 'BNI On Campus')},
+    {_canonical_program(p) for p in (
+        'MScA in Nursing (Direct Entry)',
+        'MScA in Advanced Nursing (Nurse Entry)',
+        'MScA in Nurse Practitioner',
+    )},
 ]
 
 def _programs_related(p1: str, p2: str) -> bool:
@@ -131,8 +141,8 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
     #         logger.debug(f"  + Explicit choice (mentee): {weights['explicit']} pts")
     
     # COMPONENT 2: Program alignment
-    mentor_program = mentor.program.lower().strip()
-    mentee_program = mentee.program.lower().strip()
+    mentor_program = _canonical_program(mentor.program)
+    mentee_program = _canonical_program(mentee.program)
     
     if mentor_program == mentee_program:
         score_breakdown['program_alignment'] = weights['program']
@@ -238,7 +248,11 @@ def calculate_match_score(mentor, mentee, weights=None, debug=False):
         if debug:
             logger.debug(f"    + Identity match: 8 pts")
     
-    # LGBTQ+ status match
+    # LGBTQ+ status match.
+    # The 2026-2027 forms dropped the dedicated LGBTQ+ question; 2SLGBTQI+ is now
+    # one option inside "Shared Experiences", which imports as race_ethnicity and
+    # scores through the shared-identity bonus above. This block stays for older
+    # imports and for forms that reinstate a standalone question.
     mentor_lgbtq = (mentor.lgbtq_status or "").lower().strip() == 'yes'
     mentee_lgbtq = (mentee.lgbtq_status or "").lower().strip() == 'yes'
     

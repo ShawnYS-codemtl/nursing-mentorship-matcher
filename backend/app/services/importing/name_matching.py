@@ -33,7 +33,7 @@ _MAX_NICKNAME_TOKENS = 2
 _MIN_PREFIX_LENGTH = 4
 
 
-def _strip_accents(text):
+def strip_accents(text):
     decomposed = unicodedata.normalize("NFKD", text)
     return "".join(c for c in decomposed if not unicodedata.combining(c))
 
@@ -47,7 +47,7 @@ def _tokens(text):
     if not text:
         return set()
 
-    cleaned = _strip_accents(str(text)).lower()
+    cleaned = strip_accents(str(text)).lower()
     cleaned = re.sub(r"[^a-z0-9]+", " ", cleaned)
 
     return {

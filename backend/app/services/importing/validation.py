@@ -1,3 +1,12 @@
+from app.services.importing.name_matching import strip_accents
+
+# The program runs in English and French, so a mentor who speaks neither, or a
+# mentee who asks for neither, can never satisfy the language constraint in
+# scoring and would silently sit unmatched. Spelling varies ("Francais",
+# "anglais"), so match on the word appearing anywhere in the answer.
+SUPPORTED_LANGUAGE_WORDS = ("english", "anglais", "french", "francais")
+
+
 def is_non_empty_string(value):
     return isinstance(value, str) and value.strip() != ""
 
@@ -8,6 +17,18 @@ def is_positive_int(value):
 
 def is_list(value):
     return isinstance(value, list)
+
+
+def has_supported_language(value):
+    """True when at least one answer names English or French."""
+    if not is_list(value):
+        return False
+
+    return any(
+        word in strip_accents(str(entry)).lower()
+        for entry in value
+        for word in SUPPORTED_LANGUAGE_WORDS
+    )
 
 
 def is_email(value):
@@ -44,9 +65,9 @@ FIELD_VALIDATORS = {
 
     "year_in_program": is_positive_int,
 
-    "languages": is_list,
+    "languages": has_supported_language,
 
-    "languages_needed": is_list,
+    "languages_needed": has_supported_language,
 
     "max_mentees": is_positive_int,
 
@@ -57,6 +78,13 @@ FIELD_VALIDATORS = {
     "lgbtq_status": is_non_empty_string,
 
     "extracurricular_interests": is_list
+}
+
+# Shown next to a rejected value so the admin knows what to fix, rather than
+# just being told the value is invalid.
+FIELD_ERROR_REASONS = {
+    "languages": "must list English or French",
+    "languages_needed": "must list English or French",
 }
 
 # def validate_rows(rows, required_fields):
@@ -118,10 +146,16 @@ def validate_rows(rows, required_fields):
 
             if not validator(value):
 
-                invalid_types.append({
+                invalid_field = {
                     "field": field,
                     "value": value
-                })
+                }
+
+                reason = FIELD_ERROR_REASONS.get(field)
+                if reason:
+                    invalid_field["reason"] = reason
+
+                invalid_types.append(invalid_field)
 
         if invalid_types:
             row_errors["invalid_fields"] = invalid_types

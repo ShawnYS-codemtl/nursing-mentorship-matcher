@@ -28,7 +28,11 @@ function parseImportError(err: unknown): { message: string; details: string[] } 
           if (e.missing_fields?.length)
             details.push(`${label} row ${e.row}: missing — ${e.missing_fields.join(", ")}`);
           (e.invalid_fields ?? []).forEach((f: any) =>
-            details.push(`${label} row ${e.row}: invalid value for "${f.field}" (got: ${JSON.stringify(f.value)})`)
+            details.push(
+              f.reason
+                ? `${label} row ${e.row}: "${f.field}" ${f.reason} (got: ${JSON.stringify(f.value)})`
+                : `${label} row ${e.row}: invalid value for "${f.field}" (got: ${JSON.stringify(f.value)})`
+            )
           );
         });
       fmt(body.mentor_errors, "Mentor");
